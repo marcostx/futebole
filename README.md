@@ -13,7 +13,7 @@ A simple 2D soccer simulation game built with Python and Pygame where two AI-con
 - Autonomous gameplay without human intervention
 
 ## Project Structure
-soccer_simulation/
+```futebole/
 ├── README.md
 ├── requirements.txt
 ├── main.py
@@ -27,6 +27,8 @@ soccer_simulation/
     ├── ai.py
     ├── ui.py
     └── utils.py
+```
+
 Installation
 
 Clone the repository:
@@ -34,20 +36,21 @@ git clone https://github.com/yourusername/soccer-simulation.git
 cd soccer-simulation
 
 # Create a virtual environment:
+```
 python -m venv venv
+```
 
 Activate the virtual environment:
 
-On Windows:
-venv\Scripts\activate
-
 On macOS/Linux:
+```
 source venv/bin/activate
-
+```
 
 Install dependencies:
+```
 pip install -r requirements.txt
-
+```
 
 ## Running the Game
 To start the simulation:
