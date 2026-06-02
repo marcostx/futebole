@@ -32,7 +32,10 @@ class AIController:
         our_nearest = self.team.nearest_player_to_ball(self.ball)
         their_nearest = self.opponent_team.nearest_player_to_ball(self.ball)
         
-        if our_nearest.distance_to(self.ball) < their_nearest.distance_to(self.ball):
+        if our_nearest is None:
+            self.active_player = None
+            self.support_player = None
+        elif their_nearest is None or our_nearest.distance_to(self.ball) < their_nearest.distance_to(self.ball):
             # Our team is closer, set the nearest player as active
             if not self.active_player or self.decision_cooldown <= 0:
                 self.active_player = our_nearest
