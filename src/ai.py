@@ -119,6 +119,10 @@ class AIController:
             if self.active_player.can_control_ball(self.ball):
                 self.ball.possession = self.active_player
                 self.team_state = "attack"
+
+        if not self.active_player:
+            self.support_player = None
+            return
         
         # Support player moves to a good position for receiving a pass
         if self.support_player:
