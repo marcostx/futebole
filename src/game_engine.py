@@ -95,6 +95,9 @@ class GameEngine:
         self.ball.y = self.field_y + self.field_height // 2
         self.ball.vx = 0
         self.ball.vy = 0
+        # Clear possession so the carry logic doesn't snap the ball back to a
+        # stale possessor after a goal/reset (kickoff is a free ball).
+        self.ball.possession = None
         
         # Reset team 1 positions (left side)
         for i, player in enumerate(self.team1.players):
@@ -135,6 +138,10 @@ class GameEngine:
             # Simple collision detection with field boundaries
             player.x = max(self.field_x, min(player.x, self.field_x + self.field_width))
             player.y = max(self.field_y, min(player.y, self.field_y + self.field_height))
+        
+        # Keep the ball glued to its carrier so it travels with the dribbler
+        if self.ball.possession is not None:
+            self.ball.possession.carry_ball(self.ball)
         
         # Ball collision with field boundaries
         if self.ball.x < self.field_x:

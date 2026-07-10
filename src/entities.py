@@ -77,15 +77,41 @@ class Player(Entity):
         self.pass_power = 150
         self.is_goalkeeper = False
         self.role = "field"  # field, defender, midfielder, striker
+        # Direction the player is facing; used to place a dribbled ball
+        # just ahead of the player. Defaults to pointing right.
+        self.facing_x = 1.0
+        self.facing_y = 0.0
     
     def update(self, dt):
         """Update player position and attributes."""
         super().update(dt)
         
+        # Update facing direction from current movement
+        speed = math.hypot(self.vx, self.vy)
+        if speed > 1:
+            self.facing_x = self.vx / speed
+            self.facing_y = self.vy / speed
+        
         # Recover stamina
         if self.current_stamina < self.stamina:
             self.current_stamina += 5 * dt  # Recover 5 stamina per second
             self.current_stamina = min(self.current_stamina, self.stamina)
+    
+    def carry_ball(self, ball):
+        """Keep the ball glued just ahead of this player while dribbling.
+        
+        Called every frame while the player has possession so the ball
+        travels with the carrier instead of being left behind.
+        """
+        if ball.possession is not self:
+            return
+        offset = self.radius + ball.radius
+        ball.x = self.x + self.facing_x * offset
+        ball.y = self.y + self.facing_y * offset
+        # Match the ball's velocity to the carrier's so a subsequent
+        # release/kick starts from a sensible motion state.
+        ball.vx = self.vx
+        ball.vy = self.vy
     
     def shoot(self, ball, target_x, target_y):
         """Shoot the ball towards a target position."""
