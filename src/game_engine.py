@@ -9,6 +9,11 @@ from src.entities import Ball, Player, Team
 from src.ai import AIController
 from src.ui import UI
 
+# Per-frame probability that a contesting opponent wins the ball from the
+# current holder while within control range. Tunable.
+TACKLE_SUCCESS_PROB = 0.05
+
+
 class GameEngine:
     def __init__(self):
         """Initialize the game engine with all necessary components."""
@@ -109,6 +114,41 @@ class GameEngine:
             player.x = self.field_x + self.field_width * 0.8 - (i % 2) * 0.2 * self.field_width
             player.y = self.field_y + (i / 4 + 0.2) * self.field_height
     
+    def _same_team(self, player_a, player_b):
+        """Whether two players belong to the same team."""
+        return (player_a in self.team1.players) == (player_b in self.team1.players)
+    
+    def resolve_possession(self):
+        """Decide ball control with a single, order-independent contest.
+        
+        Replaces the old per-AI "last writer wins" grabs that unfairly gave
+        possession to whichever team's controller ran last each frame.
+        
+        Rules:
+        - A player can only gain the ball while off cooldown and in range, so
+          a player who just kicked (on cooldown) cannot instantly reclaim it.
+        - A free ball goes to the closest eligible player.
+        - The current holder keeps the ball unless a contesting opponent wins
+          a probabilistic tackle; teammates never steal from each other.
+        """
+        ball = self.ball
+        holder = ball.possession
+        all_players = self.team1.players + self.team2.players
+        
+        # Players able to take control right now: in range and off cooldown.
+        takers = [p for p in all_players
+                  if p is not holder and p.can_control_ball(ball) and p.can_act()]
+        
+        if holder is None:
+            if takers:
+                ball.possession = min(takers, key=lambda p: p.distance_to(ball))
+            return
+        
+        # Holder keeps the ball unless an opponent wins a tackle this frame.
+        opponents = [p for p in takers if not self._same_team(p, holder)]
+        if opponents and random.random() < TACKLE_SUCCESS_PROB:
+            ball.possession = min(opponents, key=lambda p: p.distance_to(ball))
+    
     def update(self):
         """Update game state."""
         if self.paused:
@@ -138,6 +178,9 @@ class GameEngine:
             # Simple collision detection with field boundaries
             player.x = max(self.field_x, min(player.x, self.field_x + self.field_width))
             player.y = max(self.field_y, min(player.y, self.field_y + self.field_height))
+        
+        # Resolve who controls the ball via a fair, order-independent contest
+        self.resolve_possession()
         
         # Keep the ball glued to its carrier so it travels with the dribbler
         if self.ball.possession is not None:

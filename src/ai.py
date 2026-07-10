@@ -81,15 +81,12 @@ class AIController:
     
     def execute_defense_behavior(self, dt):
         """Execute defensive behavior for the team."""
-        # Active player chases the ball
+        # Active player chases the ball. Gaining possession is resolved
+        # centrally by the game engine (see GameEngine.resolve_possession)
+        # so it is a fair, order-independent contest.
         if self.active_player:
             self.active_player.move_towards(self.ball.x, self.ball.y, 
                                            self.active_player.max_speed)
-            
-            # Try to take possession of the ball
-            if self.active_player.can_control_ball(self.ball):
-                self.ball.possession = self.active_player
-                self.team_state = "attack"
         
         # Other players move to defensive positions
         for player in self.team.players:
@@ -110,15 +107,11 @@ class AIController:
     
     def execute_possession_behavior(self, dt):
         """Execute possession behavior for the team."""
-        # Active player goes for the ball
+        # Active player goes for the ball. Gaining possession is resolved
+        # centrally by the game engine (see GameEngine.resolve_possession).
         if self.active_player:
             self.active_player.move_towards(self.ball.x, self.ball.y, 
                                            self.active_player.max_speed)
-            
-            # Try to take possession of the ball
-            if self.active_player.can_control_ball(self.ball):
-                self.ball.possession = self.active_player
-                self.team_state = "attack"
 
         if not self.active_player:
             self.support_player = None
