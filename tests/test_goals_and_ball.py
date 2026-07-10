@@ -10,7 +10,6 @@ Verifies that:
   the ball off the woodwork/walls otherwise
 """
 
-import math
 import os
 import unittest
 
@@ -19,7 +18,7 @@ os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame
 
-from src.entities import BALL_FRICTION_PER_SEC, LOOSE_BALL_TIME, Ball, Player
+from src.entities import LOOSE_BALL_TIME, Ball, Player
 from src.game_engine import GameEngine
 
 
@@ -44,8 +43,10 @@ class BallPhysicsTest(unittest.TestCase):
         self.assertAlmostEqual(ball.loose_timer, LOOSE_BALL_TIME - 0.1, places=5)
 
     def test_shot_travels_far_enough_to_reach_goal(self):
+        # Use the actual tuning constant so this stays aligned if it changes.
+        full_power = Player("S", 0.0, 0.0, (255, 0, 0)).shoot_power
         ball = Ball(100.0, 100.0)
-        ball.kick(1.0, 0.0, 550.0)  # a full-power shot to the right
+        ball.kick(1.0, 0.0, full_power)  # a full-power shot to the right
         _integrate(ball, seconds=3.0, fps=60)
         travelled = ball.x - 100.0
         # Shooting range is <150px; the ball must be able to cover that.

@@ -115,7 +115,7 @@ class Player(Entity):
         self.max_speed = 100
         self.stamina = 100  # Max stamina
         self.current_stamina = 100
-        self.shoot_power = 550
+        self.shoot_power = 500
         self.pass_power = 250
         self.is_goalkeeper = False
         self.role = "field"  # field, defender, midfielder, striker

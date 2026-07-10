@@ -211,8 +211,8 @@ class GameEngine:
     def handle_ball_boundaries(self):
         """Resolve the ball against the field edges.
         
-        Scores a goal when the ball fully crosses a goal line within the goal
-        mouth, otherwise bounces the ball off the wall. Returns "team1",
+        Scores a goal when the ball's center crosses a goal line within the
+        goal mouth, otherwise bounces the ball off the wall. Returns "team1",
         "team2", or None depending on whether a goal was scored.
         """
         ball = self.ball
