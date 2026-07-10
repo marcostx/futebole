@@ -140,6 +140,7 @@ class EngineIntegrationTest(unittest.TestCase):
     def test_ball_follows_carrier_across_frames(self):
         engine = self._make_engine()
         carrier = engine.team1.players[0]
+        engine.ball.x, engine.ball.y = carrier.x, carrier.y  # valid possession state
         engine.ball.possession = carrier
 
         offset = carrier.radius + engine.ball.radius
@@ -159,6 +160,7 @@ class EngineIntegrationTest(unittest.TestCase):
     def test_ball_moves_with_carrier_not_static(self):
         engine = self._make_engine()
         carrier = engine.team1.players[0]
+        engine.ball.x, engine.ball.y = carrier.x, carrier.y  # valid possession state
         engine.ball.possession = carrier
 
         # Let the ball snap to the carrier first, then measure displacement.
