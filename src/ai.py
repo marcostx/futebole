@@ -164,42 +164,49 @@ class AIController:
             distance_to_goal = math.sqrt((ball_carrier.x - opponent_goal_x) ** 2 + 
                                          (ball_carrier.y - opponent_goal_y) ** 2)
             
-            if distance_to_goal < 150:  # Close enough to shoot
-                # Shoot with a slight random deviation
-                target_x = opponent_goal_x + random.uniform(-20, 20)
-                target_y = opponent_goal_y + random.uniform(-20, 20)
-                ball_carrier.shoot(self.ball, target_x, target_y)
-            else:
-                # Check if we can pass to a teammate
-                potential_receivers = [p for p in self.team.players if p != ball_carrier]
-                
-                if potential_receivers and random.random() < 0.03:  # 3% chance to pass per frame
-                    # Find the best receiver based on positioning
-                    best_receiver = min(potential_receivers, 
-                                        key=lambda p: (
-                                            get_distance(p.x, p.y, opponent_goal_x, opponent_goal_y) -
-                                            get_distance(p.x, p.y, ball_carrier.x, ball_carrier.y) * 0.5
-                                        ))
-                    
-                    # Pass to the best receiver
-                    ball_carrier.pass_ball(self.ball, best_receiver)
+            # Try to shoot or pass, but only when off cooldown. `acted` tracks
+            # whether a kick actually fired so we can fall back to movement and
+            # avoid the carrier standing still while on cooldown.
+            acted = False
+            if ball_carrier.can_act():
+                if distance_to_goal < 150:  # Close enough to shoot
+                    # Shoot with a slight random deviation
+                    target_x = opponent_goal_x + random.uniform(-20, 20)
+                    target_y = opponent_goal_y + random.uniform(-20, 20)
+                    acted = ball_carrier.shoot(self.ball, target_x, target_y)
                 else:
-                    # Dribble towards the goal
-                    target_x = ball_carrier.x + 20 * self.field_side
-                    target_y = ball_carrier.y
+                    # Check if we can pass to a teammate
+                    potential_receivers = [p for p in self.team.players if p != ball_carrier]
                     
-                    # Avoid opponents
-                    nearest_opponent = self.opponent_team.nearest_player_to_ball(self.ball)
-                    if nearest_opponent:
-                        if get_distance(ball_carrier.x, ball_carrier.y, 
-                                       nearest_opponent.x, nearest_opponent.y) < 30:
-                            # Adjust direction to avoid opponent
-                            if ball_carrier.y < nearest_opponent.y:
-                                target_y -= 20
-                            else:
-                                target_y += 20
-                    
-                    ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8)
+                    if potential_receivers and random.random() < 0.03:  # 3% chance to pass per frame
+                        # Find the best receiver based on positioning
+                        best_receiver = min(potential_receivers, 
+                                            key=lambda p: (
+                                                get_distance(p.x, p.y, opponent_goal_x, opponent_goal_y) -
+                                                get_distance(p.x, p.y, ball_carrier.x, ball_carrier.y) * 0.5
+                                            ))
+                        
+                        # Pass to the best receiver
+                        acted = ball_carrier.pass_ball(self.ball, best_receiver)
+            
+            if not acted:
+                # No kick this frame (out of range, chose not to pass, or on
+                # cooldown): dribble towards the goal so the carrier keeps moving.
+                target_x = ball_carrier.x + 20 * self.field_side
+                target_y = ball_carrier.y
+                
+                # Avoid opponents
+                nearest_opponent = self.opponent_team.nearest_player_to_ball(self.ball)
+                if nearest_opponent:
+                    if get_distance(ball_carrier.x, ball_carrier.y, 
+                                   nearest_opponent.x, nearest_opponent.y) < 30:
+                        # Adjust direction to avoid opponent
+                        if ball_carrier.y < nearest_opponent.y:
+                            target_y -= 20
+                        else:
+                            target_y += 20
+                
+                ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8)
         
         # Other players move to strategic attacking positions
         for player in self.team.players:
