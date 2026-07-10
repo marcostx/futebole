@@ -172,3 +172,12 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# printscreens
+*.png
+
+# but keep curated report screenshots
+!reports/assets/**/*.png
+
+# scratch output from monitor_match.py
+match_frames/
