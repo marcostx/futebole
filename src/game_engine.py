@@ -103,6 +103,7 @@ class GameEngine:
         # Clear possession so the carry logic doesn't snap the ball back to a
         # stale possessor after a goal/reset (kickoff is a free ball).
         self.ball.possession = None
+        self.ball.loose_timer = 0.0
         
         # Reset team 1 positions (left side)
         for i, player in enumerate(self.team1.players):
@@ -132,6 +133,12 @@ class GameEngine:
           a probabilistic tackle; teammates never steal from each other.
         """
         ball = self.ball
+        
+        # While the ball is in flight (just kicked) nobody can control it, so
+        # shots can reach the goal and passes can reach a teammate.
+        if ball.loose_timer > 0:
+            return
+        
         holder = ball.possession
         all_players = self.team1.players + self.team2.players
         
@@ -193,34 +200,54 @@ class GameEngine:
         if self.ball.possession is not None:
             self.ball.possession.carry_ball(self.ball)
         
-        # Ball collision with field boundaries
-        if self.ball.x < self.field_x:
-            # Check if ball crossed the left goal line
-            if (self.field_y + self.field_height * 0.3 <= self.ball.y <= 
-                self.field_y + self.field_height * 0.7):
+        # Ball vs field edges: goals and wall bounces
+        self.handle_ball_boundaries()
+    
+    def goal_mouth(self):
+        """(top_y, bottom_y) of the goal opening on either goal line."""
+        return (self.field_y + self.field_height * 0.3,
+                self.field_y + self.field_height * 0.7)
+    
+    def handle_ball_boundaries(self):
+        """Resolve the ball against the field edges.
+        
+        Scores a goal when the ball's center crosses a goal line within the
+        goal mouth, otherwise bounces the ball off the wall. Returns "team1",
+        "team2", or None depending on whether a goal was scored.
+        """
+        ball = self.ball
+        goal_top, goal_bottom = self.goal_mouth()
+        scorer = None
+        
+        if ball.x < self.field_x:
+            # Left goal is Team 1's own net; Team 2 attacks it.
+            if goal_top <= ball.y <= goal_bottom:
                 self.team2_score += 1
-                self.reset_positions()
+                scorer = "team2"
             else:
-                self.ball.x = self.field_x
-                self.ball.vx *= -0.8  # Bounce with energy loss
-        
-        if self.ball.x > self.field_x + self.field_width:
-            # Check if ball crossed the right goal line
-            if (self.field_y + self.field_height * 0.3 <= self.ball.y <= 
-                self.field_y + self.field_height * 0.7):
+                ball.x = self.field_x
+                ball.vx *= -0.8  # Bounce with energy loss
+        elif ball.x > self.field_x + self.field_width:
+            # Right goal is Team 2's own net; Team 1 attacks it.
+            if goal_top <= ball.y <= goal_bottom:
                 self.team1_score += 1
-                self.reset_positions()
+                scorer = "team1"
             else:
-                self.ball.x = self.field_x + self.field_width
-                self.ball.vx *= -0.8  # Bounce with energy loss
+                ball.x = self.field_x + self.field_width
+                ball.vx *= -0.8  # Bounce with energy loss
         
-        if self.ball.y < self.field_y:
-            self.ball.y = self.field_y
-            self.ball.vy *= -0.8  # Bounce with energy loss
+        if scorer is not None:
+            self.reset_positions()
+            return scorer
         
-        if self.ball.y > self.field_y + self.field_height:
-            self.ball.y = self.field_y + self.field_height
-            self.ball.vy *= -0.8  # Bounce with energy loss
+        if ball.y < self.field_y:
+            ball.y = self.field_y
+            ball.vy *= -0.8  # Bounce with energy loss
+        elif ball.y > self.field_y + self.field_height:
+            ball.y = self.field_y + self.field_height
+            ball.vy *= -0.8  # Bounce with energy loss
+        
+        return None
     
     def render(self):
         """Render the current game state."""

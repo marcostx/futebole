@@ -15,6 +15,16 @@ ACTION_COOLDOWN = 0.5
 # ball with meaningful force instead of it barely moving.
 MIN_POWER_FACTOR = 0.5
 
+# Fraction of the ball's velocity retained after one second of rolling.
+# Applied in a frame-rate independent way so a kicked ball travels a realistic
+# distance instead of stopping after ~60px (the old per-frame 0.95 friction).
+BALL_FRICTION_PER_SEC = 0.05
+
+# Seconds after a kick during which the ball is "in flight" and cannot be
+# controlled by anyone. Lets shots reach the goal and passes reach a teammate
+# instead of being recaptured on the very next frame.
+LOOSE_BALL_TIME = 0.3
+
 
 class Entity:
     """Base class for all game entities."""
@@ -60,6 +70,27 @@ class Ball(Entity):
         super().__init__(x, y)
         self.radius = 5
         self.possession = None  # Which player has possession of the ball
+        self.loose_timer = 0.0  # Seconds the ball stays uncontrollable in flight
+    
+    def update(self, dt):
+        """Roll the ball with frame-rate independent friction."""
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+        
+        # Rolling friction scaled by dt so behavior is independent of frame rate
+        decay = BALL_FRICTION_PER_SEC ** dt
+        self.vx *= decay
+        self.vy *= decay
+        
+        # Snap tiny velocities (px/s) to zero
+        if abs(self.vx) < 1:
+            self.vx = 0
+        if abs(self.vy) < 1:
+            self.vy = 0
+        
+        # Count down the in-flight window
+        if self.loose_timer > 0:
+            self.loose_timer = max(0.0, self.loose_timer - dt)
     
     def kick(self, direction_x, direction_y, power):
         """Kick the ball in a given direction with specified power."""
@@ -70,8 +101,9 @@ class Ball(Entity):
             self.vx = (direction_x / distance) * power
             self.vy = (direction_y / distance) * power
         
-        # Release possession
+        # Release possession and mark the ball as in flight
         self.possession = None
+        self.loose_timer = LOOSE_BALL_TIME
 
 class Player(Entity):
     """Represents a soccer player."""
@@ -83,8 +115,8 @@ class Player(Entity):
         self.max_speed = 100
         self.stamina = 100  # Max stamina
         self.current_stamina = 100
-        self.shoot_power = 200
-        self.pass_power = 150
+        self.shoot_power = 500
+        self.pass_power = 250
         self.is_goalkeeper = False
         self.role = "field"  # field, defender, midfielder, striker
         # Direction the player is facing; used to place a dribbled ball
