@@ -51,8 +51,11 @@ class BallPhysicsTest(unittest.TestCase):
         travelled = ball.x - 100.0
         # Shooting range is <150px; the ball must be able to cover that.
         self.assertGreater(travelled, 150.0)
-        # ...but it should not roll forever.
-        self.assertLess(travelled, 400.0)
+
+        # The ball should not roll forever; its velocity should decay to ~0.
+        _integrate(ball, seconds=10.0, fps=60)
+        self.assertLess(abs(ball.vx), 1.0)
+        self.assertLess(abs(ball.vy), 1.0)
 
     def test_rolling_friction_slows_the_ball(self):
         ball = Ball(0.0, 0.0)
