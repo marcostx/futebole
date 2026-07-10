@@ -136,6 +136,10 @@ class GameEngine:
             player.x = max(self.field_x, min(player.x, self.field_x + self.field_width))
             player.y = max(self.field_y, min(player.y, self.field_y + self.field_height))
         
+        # Keep the ball glued to its carrier so it travels with the dribbler
+        if self.ball.possession is not None:
+            self.ball.possession.carry_ball(self.ball)
+        
         # Ball collision with field boundaries
         if self.ball.x < self.field_x:
             # Check if ball crossed the left goal line
