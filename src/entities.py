@@ -6,6 +6,16 @@ Contains classes for game entities like players, ball, and teams.
 import pygame
 import math
 
+# Minimum time (seconds) between a player's kick actions (shots/passes).
+# Without this, the AI fires an action every frame, draining stamina to zero
+# and reducing kick power to nothing.
+ACTION_COOLDOWN = 0.5
+
+# Floor for the stamina-based power factor so a tired player still kicks the
+# ball with meaningful force instead of it barely moving.
+MIN_POWER_FACTOR = 0.5
+
+
 class Entity:
     """Base class for all game entities."""
     def __init__(self, x, y):
@@ -81,6 +91,8 @@ class Player(Entity):
         # just ahead of the player. Defaults to pointing right.
         self.facing_x = 1.0
         self.facing_y = 0.0
+        # Time (seconds) until this player may kick again.
+        self.action_cooldown = 0.0
     
     def update(self, dt):
         """Update player position and attributes."""
@@ -92,10 +104,18 @@ class Player(Entity):
             self.facing_x = self.vx / speed
             self.facing_y = self.vy / speed
         
+        # Tick down the action cooldown
+        if self.action_cooldown > 0:
+            self.action_cooldown = max(0.0, self.action_cooldown - dt)
+        
         # Recover stamina
         if self.current_stamina < self.stamina:
             self.current_stamina += 5 * dt  # Recover 5 stamina per second
             self.current_stamina = min(self.current_stamina, self.stamina)
+    
+    def can_act(self):
+        """Whether the player is off cooldown and may shoot or pass."""
+        return self.action_cooldown <= 0
     
     def carry_ball(self, ball):
         """Keep the ball glued just ahead of this player while dribbling.
@@ -115,33 +135,35 @@ class Player(Entity):
     
     def shoot(self, ball, target_x, target_y):
         """Shoot the ball towards a target position."""
-        # Check if the player has the ball
-        if ball.possession == self:
+        # Must have the ball and be off cooldown
+        if ball.possession == self and self.can_act():
             direction_x = target_x - ball.x
             direction_y = target_y - ball.y
             
-            # Use stamina for shooting
-            power_factor = min(1.0, self.current_stamina / 30)
+            # Use stamina for shooting, but never let power collapse to zero
+            power_factor = max(MIN_POWER_FACTOR, min(1.0, self.current_stamina / 30))
             self.current_stamina = max(0, self.current_stamina - 30)
             
             # Kick the ball
             ball.kick(direction_x, direction_y, self.shoot_power * power_factor)
+            self.action_cooldown = ACTION_COOLDOWN
             return True
         return False
     
     def pass_ball(self, ball, target_player):
         """Pass the ball to a teammate."""
-        # Check if the player has the ball
-        if ball.possession == self:
+        # Must have the ball and be off cooldown
+        if ball.possession == self and self.can_act():
             direction_x = target_player.x - ball.x
             direction_y = target_player.y - ball.y
             
-            # Use stamina for passing
-            power_factor = min(1.0, self.current_stamina / 20)
+            # Use stamina for passing, but never let power collapse to zero
+            power_factor = max(MIN_POWER_FACTOR, min(1.0, self.current_stamina / 20))
             self.current_stamina = max(0, self.current_stamina - 20)
             
             # Kick the ball
             ball.kick(direction_x, direction_y, self.pass_power * power_factor)
+            self.action_cooldown = ACTION_COOLDOWN
             return True
         return False
     
