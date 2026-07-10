@@ -95,6 +95,9 @@ class GameEngine:
         self.ball.y = self.field_y + self.field_height // 2
         self.ball.vx = 0
         self.ball.vy = 0
+        # Clear possession so the carry logic doesn't snap the ball back to a
+        # stale possessor after a goal/reset (kickoff is a free ball).
+        self.ball.possession = None
         
         # Reset team 1 positions (left side)
         for i, player in enumerate(self.team1.players):

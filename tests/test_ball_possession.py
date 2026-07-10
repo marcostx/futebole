@@ -176,6 +176,26 @@ class EngineIntegrationTest(unittest.TestCase):
         self.assertGreater(carrier.x - carrier_x_after_snap, 20.0)
         self.assertGreater(engine.ball.x - ball_x_after_snap, 20.0)
 
+    def test_reset_clears_possession_and_keeps_ball_centered(self):
+        engine = self._make_engine()
+        carrier = engine.team1.players[0]
+        carrier.x, carrier.y = 120.0, 120.0
+        engine.ball.possession = carrier
+
+        engine.reset_positions()
+
+        center_x = engine.field_x + engine.field_width // 2
+        center_y = engine.field_y + engine.field_height // 2
+
+        # Possession must be cleared on reset...
+        self.assertIsNone(engine.ball.possession)
+
+        # ...and the ball must stay at the kickoff spot after an update,
+        # not get snapped back to the (now stale) former possessor.
+        self._tick(engine)
+        self.assertAlmostEqual(engine.ball.x, center_x, delta=1.0)
+        self.assertAlmostEqual(engine.ball.y, center_y, delta=1.0)
+
 
 if __name__ == "__main__":
     unittest.main()
