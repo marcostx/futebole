@@ -135,6 +135,13 @@ class GameEngine:
         holder = ball.possession
         all_players = self.team1.players + self.team2.players
         
+        # If the recorded holder has drifted out of control range, treat the
+        # ball as free. Otherwise a stale possessor would get the ball
+        # teleported back to them by carry_ball().
+        if holder is not None and not holder.can_control_ball(ball):
+            ball.possession = None
+            holder = None
+        
         # Players able to take control right now: in range and off cooldown.
         takers = [p for p in all_players
                   if p is not holder and p.can_control_ball(ball) and p.can_act()]

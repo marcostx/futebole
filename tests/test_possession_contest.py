@@ -89,6 +89,7 @@ class PossessionContestTest(unittest.TestCase):
         engine = self._engine()
         holder = engine.team1.players[0]
         mate = engine.team1.players[1]
+        self._place_on_ball(engine, holder)  # holder is actually on the ball
         engine.ball.possession = holder
         self._place_on_ball(engine, mate)  # teammate right on the ball
 
@@ -102,8 +103,9 @@ class PossessionContestTest(unittest.TestCase):
         engine = self._engine()
         holder = engine.team1.players[0]
         opponent = engine.team2.players[0]
+        self._place_on_ball(engine, holder)  # holder is actually on the ball
         engine.ball.possession = holder
-        self._place_on_ball(engine, opponent)
+        self._place_on_ball(engine, opponent)  # opponent contests at the ball
 
         with mock.patch.object(game_engine.random, "random", return_value=0.0):
             engine.resolve_possession()
@@ -114,8 +116,9 @@ class PossessionContestTest(unittest.TestCase):
         engine = self._engine()
         holder = engine.team1.players[0]
         opponent = engine.team2.players[0]
+        self._place_on_ball(engine, holder)  # holder is actually on the ball
         engine.ball.possession = holder
-        self._place_on_ball(engine, opponent)
+        self._place_on_ball(engine, opponent)  # opponent contests at the ball
 
         with mock.patch.object(game_engine.random, "random", return_value=1.0):
             engine.resolve_possession()
@@ -125,11 +128,23 @@ class PossessionContestTest(unittest.TestCase):
     def test_holder_keeps_when_uncontested(self):
         engine = self._engine()
         holder = engine.team1.players[0]
+        self._place_on_ball(engine, holder)  # holder is on the ball
         engine.ball.possession = holder  # everyone else is far away
 
         engine.resolve_possession()
 
         self.assertIs(engine.ball.possession, holder)
+
+    def test_stale_out_of_range_holder_is_freed(self):
+        # A recorded holder that is nowhere near the ball must lose it, so the
+        # ball isn't teleported back to a stale possessor by carry_ball().
+        engine = self._engine()
+        holder = engine.team1.players[0]  # left parked far away by _engine()
+        engine.ball.possession = holder
+
+        engine.resolve_possession()
+
+        self.assertIsNone(engine.ball.possession)
 
 
 if __name__ == "__main__":
