@@ -32,41 +32,27 @@ class AIController:
         self.opponent_team = opponent_team
         self.ball = ball
         self.field_side = 1 if team.name == "Team 1" else -1  # 1 for left to right, -1 for right to left
-        self.decision_cooldown = 0
         self.active_player = None
         self.support_player = None
         self.team_state = "defense"  # defense, possession, attack
     
     def update(self, dt):
         """Update AI decisions for the team."""
-        # Update decision cooldown
-        if self.decision_cooldown > 0:
-            self.decision_cooldown -= dt
-        
         # Update team state
         self.update_team_state()
         
-        # Determine which team is closer to the ball
-        our_nearest = self.team.nearest_player_to_ball(self.ball)
-        their_nearest = self.opponent_team.nearest_player_to_ball(self.ball)
-        
-        if our_nearest is None:
-            self.active_player = None
-            self.support_player = None
-        elif their_nearest is None or our_nearest.distance_to(self.ball) < their_nearest.distance_to(self.ball):
-            # Our team is closer, set the nearest player as active
-            if not self.active_player or self.decision_cooldown <= 0:
-                self.active_player = our_nearest
-                self.decision_cooldown = 0.5  # Make decisions every 0.5 seconds
-                
-                # Find support player (second nearest to ball)
-                support_candidates = [p for p in self.team.players if p != self.active_player]
-                if support_candidates:
-                    self.support_player = min(support_candidates, 
-                                              key=lambda p: p.distance_to(self.ball))
+        # Pick this frame's roles. Exactly one player presses the ball; the
+        # rest hold their formation shape. Gaining possession is resolved
+        # centrally by the engine.
+        if self.team_state == "attack":
+            # We have the ball: the carrier acts, the nearest teammate supports.
+            self.active_player = self.ball.possession
+            others = [p for p in self.team.players if p is not self.active_player]
+            self.support_player = (min(others, key=lambda p: p.distance_to(self.ball))
+                                   if others else None)
         else:
-            # Opponent team is closer, set active player to None
-            self.active_player = None
+            # We don't have the ball: our nearest player presses it.
+            self.active_player = self.team.nearest_player_to_ball(self.ball)
             self.support_player = None
         
         # Execute behaviors based on team state
