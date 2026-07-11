@@ -6,7 +6,7 @@ Manages the overall game state, physics, and interactions between entities.
 import math
 import pygame
 import random
-from src.entities import Ball, Player, Team
+from src.entities import Ball, Player, Team, BALL_RESTITUTION
 from src.ai import AIController
 from src.ui import UI
 
@@ -283,7 +283,7 @@ class GameEngine:
                 scorer = "team2"
             else:
                 ball.x = self.field_x
-                ball.vx *= -0.8  # Bounce with energy loss
+                ball.vx *= -BALL_RESTITUTION  # Bounce with energy loss
         elif ball.x > self.field_x + self.field_width:
             # Right goal is Team 2's own net; Team 1 attacks it.
             if goal_top <= ball.y <= goal_bottom:
@@ -291,7 +291,7 @@ class GameEngine:
                 scorer = "team1"
             else:
                 ball.x = self.field_x + self.field_width
-                ball.vx *= -0.8  # Bounce with energy loss
+                ball.vx *= -BALL_RESTITUTION  # Bounce with energy loss
         
         if scorer is not None:
             self.reset_positions()
@@ -299,10 +299,10 @@ class GameEngine:
         
         if ball.y < self.field_y:
             ball.y = self.field_y
-            ball.vy *= -0.8  # Bounce with energy loss
+            ball.vy *= -BALL_RESTITUTION  # Bounce with energy loss
         elif ball.y > self.field_y + self.field_height:
             ball.y = self.field_y + self.field_height
-            ball.vy *= -0.8  # Bounce with energy loss
+            ball.vy *= -BALL_RESTITUTION  # Bounce with energy loss
         
         return None
     

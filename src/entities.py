@@ -31,6 +31,13 @@ LOOSE_BALL_TIME = 0.3
 # depends on the frame rate.
 ENTITY_FRICTION_PER_SEC = 0.046
 
+# Maximum ball speed (px/s). Caps kicks/deflections so the ball never travels
+# unrealistically fast (and tunnels through players/walls).
+BALL_MAX_SPEED = 600
+
+# Fraction of speed retained when the ball bounces off a wall (restitution).
+BALL_RESTITUTION = 0.8
+
 
 class Entity:
     """Base class for all game entities."""
@@ -79,8 +86,19 @@ class Ball(Entity):
         self.possession = None  # Which player has possession of the ball
         self.loose_timer = 0.0  # Seconds the ball stays uncontrollable in flight
     
+    def cap_speed(self):
+        """Clamp the ball's speed to BALL_MAX_SPEED."""
+        speed = math.hypot(self.vx, self.vy)
+        if speed > BALL_MAX_SPEED:
+            scale = BALL_MAX_SPEED / speed
+            self.vx *= scale
+            self.vy *= scale
+    
     def update(self, dt):
-        """Roll the ball with frame-rate independent friction."""
+        """Roll the ball with frame-rate independent friction and a speed cap."""
+        # Cap speed first so this frame's movement never exceeds the max
+        self.cap_speed()
+        
         self.x += self.vx * dt
         self.y += self.vy * dt
         
