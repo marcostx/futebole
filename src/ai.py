@@ -131,33 +131,16 @@ class AIController:
                 player.move_towards(target_x, target_y, player.max_speed * 0.7)
     
     def execute_possession_behavior(self, dt):
-        """Execute possession behavior for the team."""
+        """Chase a loose ball we're closest to: one presser, others hold shape."""
         # Active player goes for the ball. Gaining possession is resolved
         # centrally by the game engine (see GameEngine.resolve_possession).
         if self.active_player:
             self.active_player.move_towards(self.ball.x, self.ball.y, 
                                            self.active_player.max_speed)
-
-        if not self.active_player:
-            self.support_player = None
-            return
-        
-        # Support player moves to a good position for receiving a pass
-        if self.support_player:
-            # Move to a position ahead of the active player
-            target_x = self.active_player.x + 50 * self.field_side
-            target_y = self.active_player.y
-            
-            # Add some randomness
-            target_x += random.uniform(-20, 20)
-            target_y += random.uniform(-20, 20)
-            
-            self.support_player.move_towards(target_x, target_y, 
-                                            self.support_player.max_speed * 0.8)
         
         # Other players hold their formation shape (slid toward the ball)
         for player in self.team.players:
-            if player != self.active_player and player != self.support_player:
+            if player != self.active_player:
                 target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.6)
     

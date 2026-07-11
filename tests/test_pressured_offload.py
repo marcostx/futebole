@@ -22,8 +22,10 @@ def _scenario(carrier_x=300.0, carrier_y=300.0):
     """Team 1 with a carrier + two teammates, and one opponent we can place."""
     team = Team("Team 1", (255, 0, 0))
     carrier = Player("T1P1", carrier_x, carrier_y, team.color)
+    # Both teammates are forward and within MAX_PASS_DIST so selection is
+    # decided by openness, not by the reachability filter.
     mate_near = Player("T1P2", carrier_x + 55, carrier_y - 10, team.color)
-    mate_far = Player("T1P3", carrier_x + 30, carrier_y + 200, team.color)
+    mate_far = Player("T1P3", carrier_x + 45, carrier_y + 70, team.color)
     for p in (carrier, mate_near, mate_far):
         p.home_x, p.home_y = p.x, p.y
         team.add_player(p)
