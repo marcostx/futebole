@@ -165,40 +165,63 @@ class GameEngine:
             ball.possession = min(opponents, key=lambda p: p.distance_to(ball))
     
     def _clamp_to_field(self, player):
-        """Keep a player inside the field boundaries."""
+        """Clamp a player's center point to the field boundaries.
+        
+        Note this clamps the center (x, y); since players are drawn as circles
+        of radius `player.radius`, up to that radius may extend past the edge.
+        """
         player.x = max(self.field_x, min(player.x, self.field_x + self.field_width))
         player.y = max(self.field_y, min(player.y, self.field_y + self.field_height))
+    
+    def _separation_axis(self, a, b):
+        """Unit vector from a to b and their distance; (1,0,0) if coincident."""
+        dx = b.x - a.x
+        dy = b.y - a.y
+        dist = math.hypot(dx, dy)
+        if dist == 0:
+            return 1.0, 0.0, 0.0
+        return dx / dist, dy / dist, dist
     
     def separate_players(self):
         """Push apart any overlapping players (circle-based collision).
         
-        A single relaxation pass per frame: each overlapping pair is shifted
-        apart along the line joining their centers by half the overlap each.
-        Over successive frames this keeps players from stacking on top of one
-        another without needing a full physics solver.
+        Each overlapping pair is split apart along the line joining their
+        centers. If clamping one player at a boundary eats part of the push,
+        the remaining overlap is redistributed to whichever player can still
+        move, so a single call fully resolves the overlap when there is room.
         """
         players = self.team1.players + self.team2.players
         for i in range(len(players)):
             a = players[i]
             for j in range(i + 1, len(players)):
-                b = players[j]
-                dx = b.x - a.x
-                dy = b.y - a.y
-                dist = math.hypot(dx, dy)
-                min_dist = a.radius + b.radius
-                if dist >= min_dist:
-                    continue
-                if dist == 0:
-                    # Perfectly coincident: pick a deterministic axis to split on
-                    dx, dy, dist = 1.0, 0.0, 1.0
-                overlap = min_dist - dist
-                nx, ny = dx / dist, dy / dist
-                a.x -= nx * overlap / 2
-                a.y -= ny * overlap / 2
-                b.x += nx * overlap / 2
-                b.y += ny * overlap / 2
-                self._clamp_to_field(a)
-                self._clamp_to_field(b)
+                self._resolve_overlap(a, players[j])
+    
+    def _resolve_overlap(self, a, b):
+        """Separate a single pair of players if they overlap."""
+        min_dist = a.radius + b.radius
+        nx, ny, dist = self._separation_axis(a, b)
+        overlap = min_dist - dist
+        if overlap <= 0:
+            return
+        
+        # First split the overlap evenly between the two players.
+        a.x -= nx * overlap / 2
+        a.y -= ny * overlap / 2
+        b.x += nx * overlap / 2
+        b.y += ny * overlap / 2
+        self._clamp_to_field(a)
+        self._clamp_to_field(b)
+        
+        # Redistribute any overlap left after clamping to the player that can
+        # still move (push b fully away first, then a with whatever remains).
+        for mover, sign in ((b, 1), (a, -1)):
+            nx, ny, dist = self._separation_axis(a, b)
+            overlap = min_dist - dist
+            if overlap <= 1e-9:
+                break
+            mover.x += sign * nx * overlap
+            mover.y += sign * ny * overlap
+            self._clamp_to_field(mover)
     
     def update(self):
         """Update game state."""

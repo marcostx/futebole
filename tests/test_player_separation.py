@@ -85,6 +85,19 @@ class PlayerSeparationTest(unittest.TestCase):
             self.assertGreaterEqual(p.y, engine.field_y)
             self.assertLessEqual(p.y, engine.field_y + engine.field_height)
 
+    def test_corner_overlap_fully_resolved_in_one_pass(self):
+        # One player is pinned in the corner; a single pass should still fully
+        # separate the pair by pushing the other player (which has room).
+        engine = self._engine()
+        a, b = engine.team1.players[0], engine.team1.players[1]
+        a.x, a.y = engine.field_x, engine.field_y  # pinned in the corner
+        b.x, b.y = engine.field_x + 3, engine.field_y
+
+        engine.separate_players()
+
+        min_dist = a.radius + b.radius
+        self.assertGreaterEqual(a.distance_to(b), min_dist - 1e-6)
+
     def test_repeated_passes_declutter_a_pile(self):
         """Several frames of separation should resolve a stack of players."""
         engine = self._engine()
