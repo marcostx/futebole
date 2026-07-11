@@ -119,6 +119,10 @@ class Player(Entity):
         self.pass_power = 250
         self.is_goalkeeper = False
         self.role = "field"  # field, defender, midfielder, striker
+        # Home/base position for this player's role in the team formation.
+        # Off-ball players hold their shape relative to this point.
+        self.home_x = x
+        self.home_y = y
         # Direction the player is facing; used to place a dribbled ball
         # just ahead of the player. Defaults to pointing right.
         self.facing_x = 1.0

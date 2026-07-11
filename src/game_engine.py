@@ -68,31 +68,31 @@ class GameEngine:
         # Set initial positions
         self.reset_positions()
     
+    # 2-2-1 formation for Team 1 (attacks right). Fractions of the field;
+    # Team 2 mirrors the x fraction (1 - fx) since it attacks left.
+    FORMATION = [
+        ("defender", 0.18, 0.35),
+        ("defender", 0.18, 0.65),
+        ("midfielder", 0.40, 0.30),
+        ("midfielder", 0.40, 0.70),
+        ("striker", 0.62, 0.50),
+    ]
+    
     def create_players(self):
-        """Create players for both teams."""
-        # Team 1 players (5 players)
-        self.team1.add_player(Player("T1P1", self.field_x + self.field_width * 0.2, 
-                                     self.field_y + self.field_height * 0.2, self.team1.color))
-        self.team1.add_player(Player("T1P2", self.field_x + self.field_width * 0.2, 
-                                     self.field_y + self.field_height * 0.5, self.team1.color))
-        self.team1.add_player(Player("T1P3", self.field_x + self.field_width * 0.2, 
-                                     self.field_y + self.field_height * 0.8, self.team1.color))
-        self.team1.add_player(Player("T1P4", self.field_x + self.field_width * 0.4, 
-                                     self.field_y + self.field_height * 0.3, self.team1.color))
-        self.team1.add_player(Player("T1P5", self.field_x + self.field_width * 0.4, 
-                                     self.field_y + self.field_height * 0.7, self.team1.color))
-        
-        # Team 2 players (5 players)
-        self.team2.add_player(Player("T2P1", self.field_x + self.field_width * 0.8, 
-                                     self.field_y + self.field_height * 0.2, self.team2.color))
-        self.team2.add_player(Player("T2P2", self.field_x + self.field_width * 0.8, 
-                                     self.field_y + self.field_height * 0.5, self.team2.color))
-        self.team2.add_player(Player("T2P3", self.field_x + self.field_width * 0.8, 
-                                     self.field_y + self.field_height * 0.8, self.team2.color))
-        self.team2.add_player(Player("T2P4", self.field_x + self.field_width * 0.6, 
-                                     self.field_y + self.field_height * 0.3, self.team2.color))
-        self.team2.add_player(Player("T2P5", self.field_x + self.field_width * 0.6, 
-                                     self.field_y + self.field_height * 0.7, self.team2.color))
+        """Create both teams' players with roles and formation home positions."""
+        for idx, (role, fx, fy) in enumerate(self.FORMATION, start=1):
+            self._add_formation_player(self.team1, f"T1P{idx}", role, fx, fy)
+            self._add_formation_player(self.team2, f"T2P{idx}", role, 1 - fx, fy)
+    
+    def _add_formation_player(self, team, name, role, fx, fy):
+        """Create a player at a formation slot and record its home position."""
+        home_x = self.field_x + self.field_width * fx
+        home_y = self.field_y + self.field_height * fy
+        player = Player(name, home_x, home_y, team.color)
+        player.role = role
+        player.home_x = home_x
+        player.home_y = home_y
+        team.add_player(player)
     
     def reset_positions(self):
         """Reset positions of all players and the ball."""
@@ -106,15 +106,12 @@ class GameEngine:
         self.ball.possession = None
         self.ball.loose_timer = 0.0
         
-        # Reset team 1 positions (left side)
-        for i, player in enumerate(self.team1.players):
-            player.x = self.field_x + self.field_width * 0.2 + (i % 2) * 0.2 * self.field_width
-            player.y = self.field_y + (i / 4 + 0.2) * self.field_height
-        
-        # Reset team 2 positions (right side)
-        for i, player in enumerate(self.team2.players):
-            player.x = self.field_x + self.field_width * 0.8 - (i % 2) * 0.2 * self.field_width
-            player.y = self.field_y + (i / 4 + 0.2) * self.field_height
+        # Send every player back to its formation home position.
+        for player in self.team1.players + self.team2.players:
+            player.x = player.home_x
+            player.y = player.home_y
+            player.vx = 0
+            player.vy = 0
     
     def _same_team(self, player_a, player_b):
         """Whether two players belong to the same team."""
