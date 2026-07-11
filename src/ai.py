@@ -5,7 +5,6 @@ Implements the artificial intelligence for controlling soccer players.
 
 import random
 import math
-from src.utils import get_distance
 
 # How strongly the whole formation slides toward the ball while holding shape
 # (0 = stay at home positions, 1 = move as far as the ball is from center).
@@ -17,6 +16,18 @@ SHAPE_SLIDE = 0.5
 # compactness.
 ATTACK_PUSH = 130
 DEFENSE_DROP = 60
+
+# How close (px) an opponent must be to the ball carrier for the carrier to
+# feel pressured and look to offload the ball (pass, or shoot if in range)
+# rather than keep dribbling.
+PRESSURE_DIST = 30
+
+# Distance (px) to the opponent goal within which the carrier will shoot.
+SHOOT_RANGE = 150
+
+# Maximum distance (px) a pass can realistically reach a teammate, given the
+# ball's rolling physics. Passes are only attempted to teammates within range.
+MAX_PASS_DIST = 130
 
 # Field geometry (matches GameEngine: 800x600 screen, 50px margins).
 FIELD_CENTER_X = 400
@@ -150,6 +161,35 @@ class AIController:
                 target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.6)
     
+    def _best_pass_target(self, carrier):
+        """Pick the best forward, open, reachable teammate to pass to.
+        
+        Only teammates within MAX_PASS_DIST and ahead of the carrier (toward the
+        opponent goal) are considered, so passes make progress and the ball
+        isn't cycled sideways/backwards. Returns None if there is no such option.
+        """
+        opponent_goal_x = FIELD_MAX_X if self.field_side == 1 else FIELD_MIN_X
+        candidates = []
+        for p in self.team.players:
+            if p is carrier or carrier.distance_to(p) > MAX_PASS_DIST:
+                continue
+            # Only forward options (closer to the opponent goal than the carrier).
+            if (p.x - carrier.x) * self.field_side <= 0:
+                continue
+            candidates.append(p)
+        if not candidates:
+            return None
+        
+        def score(p):
+            # Openness: distance to the nearest opponent (bigger is better).
+            openness = min((p.distance_to(o) for o in self.opponent_team.players),
+                           default=1e9)
+            # Prefer teammates closer to the opponent goal.
+            forwardness = -abs(opponent_goal_x - p.x)
+            return openness + 0.5 * forwardness
+        
+        return max(candidates, key=score)
+    
     def execute_attack_behavior(self, dt):
         """Execute attacking behavior for the team."""
         # Get the player with the ball
@@ -164,47 +204,41 @@ class AIController:
             distance_to_goal = math.sqrt((ball_carrier.x - opponent_goal_x) ** 2 + 
                                          (ball_carrier.y - opponent_goal_y) ** 2)
             
+            # Is an opponent pressing the carrier too closely?
+            nearest_opponent = self.opponent_team.nearest_player_to_ball(self.ball)
+            under_pressure = (nearest_opponent is not None and
+                              ball_carrier.distance_to(nearest_opponent) < PRESSURE_DIST)
+            
             # Try to shoot or pass, but only when off cooldown. `acted` tracks
             # whether a kick actually fired so we can fall back to movement and
             # avoid the carrier standing still while on cooldown.
             acted = False
             if ball_carrier.can_act():
-                if distance_to_goal < 150:  # Close enough to shoot
+                if distance_to_goal < SHOOT_RANGE:  # Close enough to shoot
                     # Shoot with a slight random deviation
                     target_x = opponent_goal_x + random.uniform(-20, 20)
                     target_y = opponent_goal_y + random.uniform(-20, 20)
                     acted = ball_carrier.shoot(self.ball, target_x, target_y)
-                else:
-                    # Check if we can pass to a teammate
-                    potential_receivers = [p for p in self.team.players if p != ball_carrier]
-                    
-                    if potential_receivers and random.random() < 0.03:  # 3% chance to pass per frame
-                        # Find the best receiver based on positioning
-                        best_receiver = min(potential_receivers, 
-                                            key=lambda p: (
-                                                get_distance(p.x, p.y, opponent_goal_x, opponent_goal_y) -
-                                                get_distance(p.x, p.y, ball_carrier.x, ball_carrier.y) * 0.5
-                                            ))
-                        
-                        # Pass to the best receiver
-                        acted = ball_carrier.pass_ball(self.ball, best_receiver)
+                elif under_pressure:
+                    # Opponent too close: offload to a teammate to escape the
+                    # press instead of dribbling into them (and losing the ball
+                    # in a tug-of-war loop).
+                    target = self._best_pass_target(ball_carrier)
+                    if target is not None:
+                        acted = ball_carrier.pass_ball(self.ball, target)
+                elif random.random() < 0.03:  # occasional build-up pass
+                    target = self._best_pass_target(ball_carrier)
+                    if target is not None:
+                        acted = ball_carrier.pass_ball(self.ball, target)
             
             if not acted:
-                # No kick this frame (out of range, chose not to pass, or on
-                # cooldown): dribble towards the goal so the carrier keeps moving.
+                # No kick this frame (out of range/cooldown, or pressured with
+                # no reachable pass): dribble towards the goal, steering around
+                # a close opponent.
                 target_x = ball_carrier.x + 20 * self.field_side
                 target_y = ball_carrier.y
-                
-                # Avoid opponents
-                nearest_opponent = self.opponent_team.nearest_player_to_ball(self.ball)
-                if nearest_opponent:
-                    if get_distance(ball_carrier.x, ball_carrier.y, 
-                                   nearest_opponent.x, nearest_opponent.y) < 30:
-                        # Adjust direction to avoid opponent
-                        if ball_carrier.y < nearest_opponent.y:
-                            target_y -= 20
-                        else:
-                            target_y += 20
+                if nearest_opponent and ball_carrier.distance_to(nearest_opponent) < 30:
+                    target_y += -20 if ball_carrier.y < nearest_opponent.y else 20
                 
                 ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8)
         
