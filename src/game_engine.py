@@ -3,6 +3,7 @@ Game Engine Module
 Manages the overall game state, physics, and interactions between entities.
 """
 
+import math
 import pygame
 import random
 from src.entities import Ball, Player, Team
@@ -163,6 +164,65 @@ class GameEngine:
         if opponents and random.random() < TACKLE_SUCCESS_PROB:
             ball.possession = min(opponents, key=lambda p: p.distance_to(ball))
     
+    def _clamp_to_field(self, player):
+        """Clamp a player's center point to the field boundaries.
+        
+        Note this clamps the center (x, y); since players are drawn as circles
+        of radius `player.radius`, up to that radius may extend past the edge.
+        """
+        player.x = max(self.field_x, min(player.x, self.field_x + self.field_width))
+        player.y = max(self.field_y, min(player.y, self.field_y + self.field_height))
+    
+    def _separation_axis(self, a, b):
+        """Unit vector from a to b and their distance; (1,0,0) if coincident."""
+        dx = b.x - a.x
+        dy = b.y - a.y
+        dist = math.hypot(dx, dy)
+        if dist == 0:
+            return 1.0, 0.0, 0.0
+        return dx / dist, dy / dist, dist
+    
+    def separate_players(self):
+        """Push apart any overlapping players (circle-based collision).
+        
+        Each overlapping pair is split apart along the line joining their
+        centers. If clamping one player at a boundary eats part of the push,
+        the remaining overlap is redistributed to whichever player can still
+        move, so a single call fully resolves the overlap when there is room.
+        """
+        players = self.team1.players + self.team2.players
+        for i in range(len(players)):
+            a = players[i]
+            for j in range(i + 1, len(players)):
+                self._resolve_overlap(a, players[j])
+    
+    def _resolve_overlap(self, a, b):
+        """Separate a single pair of players if they overlap."""
+        min_dist = a.radius + b.radius
+        nx, ny, dist = self._separation_axis(a, b)
+        overlap = min_dist - dist
+        if overlap <= 0:
+            return
+        
+        # First split the overlap evenly between the two players.
+        a.x -= nx * overlap / 2
+        a.y -= ny * overlap / 2
+        b.x += nx * overlap / 2
+        b.y += ny * overlap / 2
+        self._clamp_to_field(a)
+        self._clamp_to_field(b)
+        
+        # Redistribute any overlap left after clamping to the player that can
+        # still move (push b fully away first, then a with whatever remains).
+        for mover, sign in ((b, 1), (a, -1)):
+            nx, ny, dist = self._separation_axis(a, b)
+            overlap = min_dist - dist
+            if overlap <= 1e-9:
+                break
+            mover.x += sign * nx * overlap
+            mover.y += sign * ny * overlap
+            self._clamp_to_field(mover)
+    
     def update(self):
         """Update game state."""
         if self.paused:
@@ -188,13 +248,13 @@ class GameEngine:
         # Update players
         for player in self.team1.players + self.team2.players:
             player.update(dt)
-            
-            # Simple collision detection with field boundaries
-            player.x = max(self.field_x, min(player.x, self.field_x + self.field_width))
-            player.y = max(self.field_y, min(player.y, self.field_y + self.field_height))
+            self._clamp_to_field(player)
         
         # Resolve who controls the ball via a fair, order-independent contest
         self.resolve_possession()
+        
+        # Push apart any overlapping players so they don't stack up
+        self.separate_players()
         
         # Keep the ball glued to its carrier so it travels with the dribbler
         if self.ball.possession is not None:
