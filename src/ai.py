@@ -7,6 +7,24 @@ import random
 import math
 from src.utils import get_distance
 
+# How strongly the whole formation slides toward the ball while holding shape
+# (0 = stay at home positions, 1 = move as far as the ball is from center).
+SHAPE_SLIDE = 0.5
+
+# How far (px) the block pushes toward the opponent goal when attacking and
+# drops back toward its own goal when defending. Keeps shape but gives
+# attacking depth (so the ball can reach shooting range) and defensive
+# compactness.
+ATTACK_PUSH = 130
+DEFENSE_DROP = 60
+
+# Field geometry (matches GameEngine: 800x600 screen, 50px margins).
+FIELD_CENTER_X = 400
+FIELD_CENTER_Y = 300
+FIELD_MIN_X, FIELD_MAX_X = 50, 750
+FIELD_MIN_Y, FIELD_MAX_Y = 50, 550
+
+
 class AIController:
     """Controls the AI behavior of a team."""
     def __init__(self, team, opponent_team, ball):
@@ -59,6 +77,27 @@ class AIController:
         else:  # attack
             self.execute_attack_behavior(dt)
     
+    def formation_position(self, player):
+        """Target that holds the player's formation shape, slid toward the ball.
+        
+        The whole team translates toward wherever the ball is (so the block
+        shifts up/down and side to side) while keeping each player's relative
+        role position, instead of everyone collapsing onto the ball.
+        """
+        shift_x = (self.ball.x - FIELD_CENTER_X) * SHAPE_SLIDE
+        shift_y = (self.ball.y - FIELD_CENTER_Y) * SHAPE_SLIDE
+        
+        # Push the block forward when attacking, drop it back when defending
+        # (field_side points toward the opponent goal).
+        if self.team_state == "attack":
+            shift_x += ATTACK_PUSH * self.field_side
+        elif self.team_state == "defense":
+            shift_x -= DEFENSE_DROP * self.field_side
+        
+        target_x = max(FIELD_MIN_X, min(player.home_x + shift_x, FIELD_MAX_X))
+        target_y = max(FIELD_MIN_Y, min(player.home_y + shift_y, FIELD_MAX_Y))
+        return target_x, target_y
+    
     def update_team_state(self):
         """Update the team's strategic state."""
         # Check if the ball is possessed by any player
@@ -88,21 +127,10 @@ class AIController:
             self.active_player.move_towards(self.ball.x, self.ball.y, 
                                            self.active_player.max_speed)
         
-        # Other players move to defensive positions
+        # Other players hold their formation shape (slid toward the ball)
         for player in self.team.players:
             if player != self.active_player:
-                # Move to a defensive position between the ball and our goal
-                goal_x = 50 if self.field_side == 1 else 750
-                goal_y = 300
-                
-                # Calculate position between ball and goal
-                target_x = (self.ball.x + goal_x) / 2
-                target_y = (self.ball.y + goal_y) / 2
-                
-                # Add more randomness and ensure minimum distance to avoid clustering
-                target_x += random.uniform(-5, 5)
-                target_y += random.uniform(-5, 5)
-                
+                target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.7)
     
     def execute_possession_behavior(self, dt):
@@ -130,17 +158,10 @@ class AIController:
             self.support_player.move_towards(target_x, target_y, 
                                             self.support_player.max_speed * 0.8)
         
-        # Other players move to strategic positions
+        # Other players hold their formation shape (slid toward the ball)
         for player in self.team.players:
             if player != self.active_player and player != self.support_player:
-                # Move to a position that provides width and depth
-                base_x = self.active_player.x + 80 * self.field_side
-                base_y = 300
-                
-                # Add some randomness for distribution
-                target_x = base_x + random.uniform(-40, 40)
-                target_y = base_y + random.uniform(-100, 100)
-                
+                target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.6)
     
     def execute_attack_behavior(self, dt):
@@ -201,15 +222,15 @@ class AIController:
                 
                 ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8)
         
-        # Other players move to strategic attacking positions
+        # The nearest teammate offers a short forward passing option (within
+        # passing range so the ball can advance); the rest hold formation shape.
         for player in self.team.players:
-            if player != ball_carrier:
-                # Move to a position that provides support
-                if self.field_side == 1:  # Left to right
-                    target_x = min(700, ball_carrier.x + random.uniform(30, 100))
-                else:  # Right to left
-                    target_x = max(100, ball_carrier.x - random.uniform(30, 100))
-                
-                target_y = 300 + random.uniform(-120, 120)
-                
+            if player is ball_carrier:
+                continue
+            if player is self.support_player:
+                sx = max(FIELD_MIN_X, min(ball_carrier.x + 60 * self.field_side, FIELD_MAX_X))
+                sy = max(FIELD_MIN_Y, min(ball_carrier.y, FIELD_MAX_Y))
+                player.move_towards(sx, sy, player.max_speed * 0.9)
+            else:
+                target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.7)
