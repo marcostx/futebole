@@ -3,6 +3,7 @@ Game Engine Module
 Manages the overall game state, physics, and interactions between entities.
 """
 
+import math
 import pygame
 import random
 from src.entities import Ball, Player, Team
@@ -163,6 +164,42 @@ class GameEngine:
         if opponents and random.random() < TACKLE_SUCCESS_PROB:
             ball.possession = min(opponents, key=lambda p: p.distance_to(ball))
     
+    def _clamp_to_field(self, player):
+        """Keep a player inside the field boundaries."""
+        player.x = max(self.field_x, min(player.x, self.field_x + self.field_width))
+        player.y = max(self.field_y, min(player.y, self.field_y + self.field_height))
+    
+    def separate_players(self):
+        """Push apart any overlapping players (circle-based collision).
+        
+        A single relaxation pass per frame: each overlapping pair is shifted
+        apart along the line joining their centers by half the overlap each.
+        Over successive frames this keeps players from stacking on top of one
+        another without needing a full physics solver.
+        """
+        players = self.team1.players + self.team2.players
+        for i in range(len(players)):
+            a = players[i]
+            for j in range(i + 1, len(players)):
+                b = players[j]
+                dx = b.x - a.x
+                dy = b.y - a.y
+                dist = math.hypot(dx, dy)
+                min_dist = a.radius + b.radius
+                if dist >= min_dist:
+                    continue
+                if dist == 0:
+                    # Perfectly coincident: pick a deterministic axis to split on
+                    dx, dy, dist = 1.0, 0.0, 1.0
+                overlap = min_dist - dist
+                nx, ny = dx / dist, dy / dist
+                a.x -= nx * overlap / 2
+                a.y -= ny * overlap / 2
+                b.x += nx * overlap / 2
+                b.y += ny * overlap / 2
+                self._clamp_to_field(a)
+                self._clamp_to_field(b)
+    
     def update(self):
         """Update game state."""
         if self.paused:
@@ -188,13 +225,13 @@ class GameEngine:
         # Update players
         for player in self.team1.players + self.team2.players:
             player.update(dt)
-            
-            # Simple collision detection with field boundaries
-            player.x = max(self.field_x, min(player.x, self.field_x + self.field_width))
-            player.y = max(self.field_y, min(player.y, self.field_y + self.field_height))
+            self._clamp_to_field(player)
         
         # Resolve who controls the ball via a fair, order-independent contest
         self.resolve_possession()
+        
+        # Push apart any overlapping players so they don't stack up
+        self.separate_players()
         
         # Keep the ball glued to its carrier so it travels with the dribbler
         if self.ball.possession is not None:
