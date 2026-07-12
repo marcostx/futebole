@@ -28,7 +28,7 @@ class RolesAndHomeTest(unittest.TestCase):
     def test_each_player_has_a_role_and_home_in_field(self):
         engine = self._engine()
         for p in engine.team1.players + engine.team2.players:
-            self.assertIn(p.role, ("defender", "midfielder", "striker"))
+            self.assertIn(p.role, ("goalkeeper", "defender", "midfielder", "striker"))
             self.assertGreaterEqual(p.home_x, engine.field_x)
             self.assertLessEqual(p.home_x, engine.field_x + engine.field_width)
             self.assertGreaterEqual(p.home_y, engine.field_y)
@@ -38,9 +38,12 @@ class RolesAndHomeTest(unittest.TestCase):
         engine = self._engine()
         for team in (engine.team1, engine.team2):
             roles = [p.role for p in team.players]
+            self.assertEqual(roles.count("goalkeeper"), 1)
             self.assertEqual(roles.count("defender"), 2)
             self.assertEqual(roles.count("midfielder"), 2)
             self.assertEqual(roles.count("striker"), 1)
+            keeper = [p for p in team.players if p.role == "goalkeeper"][0]
+            self.assertTrue(keeper.is_goalkeeper)
 
     def test_teams_mirror_horizontally(self):
         engine = self._engine()

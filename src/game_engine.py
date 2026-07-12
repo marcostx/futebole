@@ -68,14 +68,16 @@ class GameEngine:
         # Set initial positions
         self.reset_positions()
     
-    # 2-2-1 formation for Team 1 (attacks right). Fractions of the field;
-    # Team 2 mirrors the x fraction (1 - fx) since it attacks left.
+    # 2-2-1 formation plus a goalkeeper for Team 1 (attacks right). Fractions
+    # of the field; Team 2 mirrors the x fraction (1 - fx) since it attacks
+    # left. The goalkeeper slot is last so outfield player indices are stable.
     FORMATION = [
         ("defender", 0.18, 0.35),
         ("defender", 0.18, 0.65),
         ("midfielder", 0.40, 0.30),
         ("midfielder", 0.40, 0.70),
         ("striker", 0.62, 0.50),
+        ("goalkeeper", 0.03, 0.50),
     ]
     
     def create_players(self):
@@ -90,6 +92,7 @@ class GameEngine:
         home_y = self.field_y + self.field_height * fy
         player = Player(name, home_x, home_y, team.color)
         player.role = role
+        player.is_goalkeeper = role == "goalkeeper"
         player.home_x = home_x
         player.home_y = home_y
         team.add_player(player)
