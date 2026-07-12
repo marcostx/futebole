@@ -49,9 +49,10 @@ FIELD_CENTER_Y = 300
 FIELD_MIN_X, FIELD_MAX_X = 50, 750
 FIELD_MIN_Y, FIELD_MAX_Y = 50, 550
 
-# Goal mouth extents (matches GameEngine.goal_mouth: 30%-70% of field height).
-GOAL_MOUTH_TOP = 200
-GOAL_MOUTH_BOTTOM = 400
+# Goal mouth extents, derived from the field bounds exactly like
+# GameEngine.goal_mouth (30%-70% of field height).
+GOAL_MOUTH_TOP = FIELD_MIN_Y + (FIELD_MAX_Y - FIELD_MIN_Y) * 0.3
+GOAL_MOUTH_BOTTOM = FIELD_MIN_Y + (FIELD_MAX_Y - FIELD_MIN_Y) * 0.7
 
 # Goalkeeper tuning. The keeper rushes a ball this close (px) to its own goal
 # center when the ball is loose or held by an opponent; otherwise it holds
@@ -83,18 +84,16 @@ class AIController:
         # rest hold their formation shape. Gaining possession is resolved
         # centrally by the engine. The goalkeeper never presses or supports:
         # it has its own dedicated behavior below.
-        outfield = [p for p in self.team.players if not p.is_goalkeeper]
         if self.team_state == "attack":
             # We have the ball: the carrier acts, the nearest teammate supports.
             self.active_player = self.ball.possession
-            others = [p for p in outfield if p is not self.active_player]
+            others = [p for p in self.team.players
+                      if p is not self.active_player and not p.is_goalkeeper]
             self.support_player = (min(others, key=lambda p: p.distance_to(self.ball))
                                    if others else None)
         else:
             # We don't have the ball: our nearest outfield player presses it.
-            candidates = outfield or self.team.players
-            self.active_player = (min(candidates, key=lambda p: p.distance_to(self.ball))
-                                  if candidates else None)
+            self.active_player = self._nearest_outfield_to_ball(self.team)
             self.support_player = None
         
         # Execute behaviors based on team state
@@ -132,13 +131,21 @@ class AIController:
         target_y = max(FIELD_MIN_Y, min(player.home_y + shift_y, FIELD_MAX_Y))
         return target_x, target_y
     
+    def _nearest_outfield_to_ball(self, team):
+        """The team's outfield player nearest the ball (keeper as a last resort)."""
+        candidates = [p for p in team.players if not p.is_goalkeeper] or team.players
+        return (min(candidates, key=lambda p: p.distance_to(self.ball))
+                if candidates else None)
+    
     def update_team_state(self):
         """Update the team's strategic state."""
         # Check if the ball is possessed by any player
         if self.ball.possession is None:
-            # Ball is free, check which team is closer
-            our_nearest = self.team.nearest_player_to_ball(self.ball)
-            their_nearest = self.opponent_team.nearest_player_to_ball(self.ball)
+            # Ball is free: compare the players who would actually chase it
+            # (nearest outfielder on each side; keepers only rush balls near
+            # their own goal, independently of the team state).
+            our_nearest = self._nearest_outfield_to_ball(self.team)
+            their_nearest = self._nearest_outfield_to_ball(self.opponent_team)
             
             our_distance = our_nearest.distance_to(self.ball)
             their_distance = their_nearest.distance_to(self.ball)
@@ -303,8 +310,8 @@ class AIController:
         # (_goalkeeper_distribute), not the outfield carrier logic.
         if ball_carrier in self.team.players and not ball_carrier.is_goalkeeper:
             # We have the ball, decide what to do
-            opponent_goal_x = 750 if self.field_side == 1 else 50
-            opponent_goal_y = 300
+            opponent_goal_x = FIELD_MAX_X if self.field_side == 1 else FIELD_MIN_X
+            opponent_goal_y = FIELD_CENTER_Y
             
             # Check if we're in shooting range
             distance_to_goal = math.sqrt((ball_carrier.x - opponent_goal_x) ** 2 + 
