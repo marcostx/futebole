@@ -48,15 +48,31 @@ class UI:
         pygame.draw.rect(self.screen, (255, 255, 255), 
                          (x + width, y + height * 0.3, 10, height * 0.4), 2)
     
-    def draw_player(self, player):
-        """Draw a player on the screen."""
-        # Draw player circle
-        pygame.draw.circle(self.screen, player.color, 
-                           (int(player.x), int(player.y)), 
-                           player.radius)
+    # Keeper marking and carrier highlight colors
+    GK_RING_COLOR = (255, 215, 0)  # gold ring around goalkeepers
+    CARRIER_RING_COLOR = (255, 255, 255)  # white halo on the ball carrier
+    
+    def draw_player(self, player, has_ball=False):
+        """Draw a player: team circle, keeper marking, possession halo."""
+        center = (int(player.x), int(player.y))
         
-        # Draw player name
-        name_text = self.small_font.render(player.name, True, (255, 255, 255))
+        # Possession halo: a white ring slightly larger than the player so
+        # it's obvious at a glance who is on the ball.
+        if has_ball:
+            pygame.draw.circle(self.screen, self.CARRIER_RING_COLOR,
+                               center, player.radius + 5, 2)
+        
+        # Draw player circle
+        pygame.draw.circle(self.screen, player.color, center, player.radius)
+        
+        # Goalkeepers get a gold ring so each team's keeper stands out.
+        if player.is_goalkeeper:
+            pygame.draw.circle(self.screen, self.GK_RING_COLOR,
+                               center, player.radius, 3)
+        
+        # Draw player name (keepers labelled as such)
+        label = f"{player.name} (GK)" if player.is_goalkeeper else player.name
+        name_text = self.small_font.render(label, True, (255, 255, 255))
         self.screen.blit(name_text, (player.x - name_text.get_width() // 2, 
                                      player.y - 25))
         
@@ -102,3 +118,31 @@ class UI:
         if game_time >= match_duration:
             state_text = self.font.render("Game Over", True, (255, 0, 0))
             self.screen.blit(state_text, (self.width - state_text.get_width() - 10, 5))
+    
+    @staticmethod
+    def possession_percentages(team1, team2):
+        """(team1 %, team2 %) of the time either team held the ball."""
+        total = team1.possession_time + team2.possession_time
+        if total <= 0:
+            return 0, 0
+        pct1 = round(team1.possession_time / total * 100)
+        return pct1, 100 - pct1
+    
+    def draw_hud_stats(self, team1, team2):
+        """Bottom HUD bar with possession % and shots for both teams."""
+        bar_height = 34
+        bar_y = self.height - bar_height
+        pygame.draw.rect(self.screen, (0, 0, 0),
+                         (0, bar_y, self.width, bar_height))
+        
+        pct1, pct2 = self.possession_percentages(team1, team2)
+        possession_text = self.small_font.render(
+            f"Possession  {team1.name} {pct1}% - {pct2}% {team2.name}",
+            True, (255, 255, 255))
+        self.screen.blit(possession_text, (10, bar_y + 8))
+        
+        shots_text = self.small_font.render(
+            f"Shots  {team1.name} {team1.shots} - {team2.shots} {team2.name}",
+            True, (255, 255, 255))
+        self.screen.blit(shots_text,
+                         (self.width - shots_text.get_width() - 10, bar_y + 8))
