@@ -25,9 +25,21 @@ PRESSURE_DIST = 30
 # Distance (px) to the opponent goal within which the carrier will shoot.
 SHOOT_RANGE = 150
 
-# Maximum distance (px) a pass can realistically reach a teammate, given the
-# ball's rolling physics. Passes are only attempted to teammates within range.
+# Maximum distance (px) for a normal short pass. Teammates within this range
+# are always candidates (subject to lane/offside checks).
 MAX_PASS_DIST = 130
+
+# Long passes: forward teammates beyond MAX_PASS_DIST can still be reached
+# with a driven ball up to this distance (px), but only when clearly open —
+# a long ball to a marked man is a giveaway. Receivers already in shooting
+# range are worth the risk at half the openness (a killer ball into the box).
+LONG_PASS_DIST = 260
+LONG_PASS_MIN_OPENNESS = 60
+
+# How far (px) ahead of the carrier the supporting teammate runs. Beyond
+# short-pass range on purpose: the runner stretches the defense and gives
+# the carrier a driven long-ball option toward the goal.
+SUPPORT_RUN_DIST = 150
 
 # A passing lane is considered blocked if an opponent is within this distance
 # (px) of the carrier->receiver segment.
@@ -342,6 +354,11 @@ class AIController:
         """X of the goal line this team attacks."""
         return FIELD_MAX_X if self.field_side == 1 else FIELD_MIN_X
     
+    def _in_shot_range(self, player):
+        """Whether the player is within shooting range of the opponent goal."""
+        return math.hypot(self._opponent_goal_x() - player.x,
+                          FIELD_CENTER_Y - player.y) < SHOOT_RANGE
+    
     def _shot_angle(self, shooter):
         """Angular width (rad) of the opponent goal mouth seen from the shooter.
         
@@ -444,16 +461,33 @@ class AIController:
         return True
     
     def _pass_candidates(self, carrier, forward):
-        """Open-laned, reachable, onside teammates ahead of (or behind) the carrier."""
+        """Open-laned, reachable, onside teammates ahead of (or behind) the carrier.
+        
+        Forward teammates beyond short range still qualify for a driven long
+        ball (up to LONG_PASS_DIST) when they are clearly open — i.e. in a
+        better position worth the riskier, longer pass.
+        """
         candidates = []
         for p in self.team.players:
-            if p is carrier or carrier.distance_to(p) > MAX_PASS_DIST:
+            if p is carrier:
+                continue
+            dist = carrier.distance_to(p)
+            max_range = LONG_PASS_DIST if forward else MAX_PASS_DIST
+            if dist > max_range:
                 continue
             # Split forward options (closer to the opponent goal than the
             # carrier) from backward/lateral ones.
             is_forward = (p.x - carrier.x) * self.field_side > 0
             if is_forward != forward:
                 continue
+            # Beyond short range, only clearly open teammates are worth the
+            # longer ball; a marked receiver would just be dispossessed.
+            # A receiver already in shooting range justifies more risk.
+            if dist > MAX_PASS_DIST:
+                needed = (LONG_PASS_MIN_OPENNESS / 2
+                          if self._in_shot_range(p) else LONG_PASS_MIN_OPENNESS)
+                if self._openness(p) < needed:
+                    continue
             # Never pass to a teammate in an offside position.
             if self._is_offside_position(p):
                 continue
@@ -566,15 +600,21 @@ class AIController:
                 
                 ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8)
         
-        # The nearest teammate offers a short forward passing option (within
-        # passing range so the ball can advance); the rest hold formation shape.
+        # The nearest teammate makes a forward run ahead of the carrier: far
+        # enough to stretch the defense and offer a driven long-ball option,
+        # while staying onside. The rest hold formation shape.
         for player in self.team.players:
             if player is ball_carrier:
                 continue
             if player is self.support_player:
+                run_x = ball_carrier.x + SUPPORT_RUN_DIST * self.field_side
+                line_x = self._second_last_opponent_x()
+                if line_x is not None:
+                    # Hold the run at the offside line so the pass is legal.
+                    run_x = (min(run_x, line_x) if self.field_side == 1
+                             else max(run_x, line_x))
                 sx = max(FIELD_MIN_X + FORMATION_MARGIN,
-                         min(ball_carrier.x + 60 * self.field_side,
-                             FIELD_MAX_X - FORMATION_MARGIN))
+                         min(run_x, FIELD_MAX_X - FORMATION_MARGIN))
                 sy = max(FIELD_MIN_Y + FORMATION_MARGIN,
                          min(ball_carrier.y, FIELD_MAX_Y - FORMATION_MARGIN))
                 player.move_towards(sx, sy, player.max_speed * 0.9)

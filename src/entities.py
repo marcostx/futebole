@@ -38,6 +38,13 @@ BALL_MAX_SPEED = 600
 # Fraction of speed retained when the ball bounces off a wall (restitution).
 BALL_RESTITUTION = 0.8
 
+# Passes are powered to die near the receiver's feet: the rolling decay rate
+# (derived from BALL_FRICTION_PER_SEC) converts pass distance into the kick
+# speed needed to cover it, with a margin so the ball arrives with some pace.
+# Bounded below so tap passes still zip, and above by the ball's max speed.
+PASS_POWER_MARGIN = 1.1
+PASS_POWER_MIN = 200
+
 
 class Entity:
     """Base class for all game entities."""
@@ -145,7 +152,6 @@ class Player(Entity):
         self.stamina = 100  # Max stamina
         self.current_stamina = 100
         self.shoot_power = 500
-        self.pass_power = 250
         self.is_goalkeeper = False
         self.role = "field"  # field, defender, midfielder, striker
         # Home/base position for this player's role in the team formation.
@@ -216,18 +222,36 @@ class Player(Entity):
         return False
     
     def pass_ball(self, ball, target_player):
-        """Pass the ball to a teammate."""
+        """Pass the ball to a teammate, turning to face them first."""
         # Must have the ball and be off cooldown
         if ball.possession == self and self.can_act():
+            # Quick direction switch: turn toward the receiver and bring the
+            # carried ball to that side, so the carrier can play the ball
+            # backward/sideways naturally while dribbling another way.
+            to_target_x = target_player.x - self.x
+            to_target_y = target_player.y - self.y
+            pass_dist = math.hypot(to_target_x, to_target_y)
+            if pass_dist > 0:
+                self.facing_x = to_target_x / pass_dist
+                self.facing_y = to_target_y / pass_dist
+                self.carry_ball(ball)
+            
             direction_x = target_player.x - ball.x
             direction_y = target_player.y - ball.y
+            
+            # Size the kick to the pass distance so the ball dies near the
+            # receiver's feet: short passes stay soft, long balls are driven.
+            decay_rate = -math.log(BALL_FRICTION_PER_SEC)
+            power = max(PASS_POWER_MIN,
+                        min(pass_dist * decay_rate * PASS_POWER_MARGIN,
+                            BALL_MAX_SPEED))
             
             # Use stamina for passing, but never let power collapse to zero
             power_factor = max(MIN_POWER_FACTOR, min(1.0, self.current_stamina / 20))
             self.current_stamina = max(0, self.current_stamina - 20)
             
             # Kick the ball
-            ball.kick(direction_x, direction_y, self.pass_power * power_factor)
+            ball.kick(direction_x, direction_y, power * power_factor)
             self.action_cooldown = ACTION_COOLDOWN
             return True
         return False
