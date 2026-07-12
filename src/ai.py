@@ -63,6 +63,21 @@ GK_MOUTH_MARGIN = 10
 # How far upfield (px) the keeper boots a clearance when no pass is open.
 GK_CLEAR_DIST = 350
 
+# Shooting. Corner shots aim this far (px) inside the posts.
+SHOT_CORNER_MARGIN = 15
+# Minimum angular width (rad) the goal mouth must subtend from the shooter
+# for a shot to be worth taking (~20°); tighter angles are passed up in
+# favor of a pass or of dribbling toward the center to open the angle.
+MIN_SHOT_ANGLE = 0.35
+# Aim noise (px on the target y): base spread at point blank, growing by the
+# scale term at maximum shooting range, so long shots are less precise.
+SHOT_NOISE_BASE = 5
+SHOT_NOISE_SCALE = 15
+# Shots aim this far (px) beyond the goal line so the kick always has a
+# forward component: a target exactly on the line degenerates into a
+# vertical (unscoreable) kick when the ball sits on the line itself.
+SHOT_DEPTH = 10
+
 
 class AIController:
     """Controls the AI behavior of a team."""
@@ -239,6 +254,58 @@ class AIController:
         clear_x = keeper.x + GK_CLEAR_DIST * self.field_side
         keeper.shoot(self.ball, clear_x, FIELD_CENTER_Y)
     
+    def _opponent_goal_x(self):
+        """X of the goal line this team attacks."""
+        return FIELD_MAX_X if self.field_side == 1 else FIELD_MIN_X
+    
+    def _shot_angle(self, shooter):
+        """Angular width (rad) of the opponent goal mouth seen from the shooter.
+        
+        Wide in front of the goal, narrow from sharp positions near the goal
+        line — a direct measure of how much of the goal is available.
+        """
+        goal_x = self._opponent_goal_x()
+        angle_top = math.atan2(GOAL_MOUTH_TOP - shooter.y, goal_x - shooter.x)
+        angle_bottom = math.atan2(GOAL_MOUTH_BOTTOM - shooter.y, goal_x - shooter.x)
+        return abs(angle_bottom - angle_top)
+    
+    def _goal_blocker(self):
+        """The opponent nearest the center of the goal we attack.
+        
+        In practice their goalkeeper, but falls back to any covering defender
+        (or None) so corner picking works against keeper-less rosters too.
+        """
+        goal_x = self._opponent_goal_x()
+        return min(self.opponent_team.players,
+                   key=lambda o: math.hypot(o.x - goal_x, o.y - FIELD_CENTER_Y),
+                   default=None)
+    
+    def _pick_shot_target(self, shooter):
+        """(x, y) to shoot at: just inside the corner away from the keeper.
+        
+        Picks the corner of the goal mouth farther from the blocking opponent
+        (their keeper); with no defenders it takes the near corner (shortest
+        travel). Aim noise on y grows with distance, so close shots are
+        precise and long ones can drift wide.
+        """
+        goal_x = self._opponent_goal_x()
+        corners = (GOAL_MOUTH_TOP + SHOT_CORNER_MARGIN,
+                   GOAL_MOUTH_BOTTOM - SHOT_CORNER_MARGIN)
+        
+        blocker = self._goal_blocker()
+        if blocker is not None:
+            target_y = max(corners,
+                           key=lambda cy: math.hypot(goal_x - blocker.x,
+                                                     cy - blocker.y))
+        else:
+            target_y = min(corners, key=lambda cy: abs(cy - shooter.y))
+        
+        dist = math.hypot(goal_x - shooter.x, target_y - shooter.y)
+        noise = SHOT_NOISE_BASE + SHOT_NOISE_SCALE * min(1.0, dist / SHOOT_RANGE)
+        # Aim past the goal line so the shot always drives into the net.
+        target_x = goal_x + SHOT_DEPTH * self.field_side
+        return target_x, target_y + random.uniform(-noise, noise)
+    
     def _openness(self, player):
         """Distance (px) from a player to the nearest opponent."""
         return min((player.distance_to(o) for o in self.opponent_team.players),
@@ -325,12 +392,14 @@ class AIController:
             # Try to shoot or pass, but only when off cooldown. `acted` tracks
             # whether a kick actually fired so we can fall back to movement and
             # avoid the carrier standing still while on cooldown.
+            in_shot_range = distance_to_goal < SHOOT_RANGE
+            good_angle = self._shot_angle(ball_carrier) >= MIN_SHOT_ANGLE
             acted = False
             if ball_carrier.can_act():
-                if distance_to_goal < SHOOT_RANGE:  # Close enough to shoot
-                    # Shoot with a slight random deviation
-                    target_x = opponent_goal_x + random.uniform(-20, 20)
-                    target_y = opponent_goal_y + random.uniform(-20, 20)
+                if in_shot_range and good_angle:
+                    # Enough of the goal is visible: shoot at the corner away
+                    # from the keeper, with distance-scaled aim noise.
+                    target_x, target_y = self._pick_shot_target(ball_carrier)
                     acted = ball_carrier.shoot(self.ball, target_x, target_y)
                 elif under_pressure:
                     # Opponent too close: offload to a teammate to escape the
@@ -350,12 +419,19 @@ class AIController:
                         acted = ball_carrier.pass_ball(self.ball, target)
             
             if not acted:
-                # No kick this frame (out of range/cooldown, or pressured with
-                # no reachable pass): dribble towards the goal, steering around
-                # a close opponent.
+                # No kick this frame (out of range/cooldown/tight angle, or
+                # pressured with no reachable pass): dribble towards the goal,
+                # steering around a close opponent.
                 target_x = ball_carrier.x + 20 * self.field_side
                 target_y = ball_carrier.y
-                if nearest_opponent and ball_carrier.distance_to(nearest_opponent) < 30:
+                if in_shot_range and not good_angle:
+                    # Sharp position by the goal line: cut toward the middle
+                    # of the goal mouth to open the shooting angle instead of
+                    # driving into the corner.
+                    dy = opponent_goal_y - ball_carrier.y
+                    target_y += max(-20.0, min(20.0, dy))
+                if (nearest_opponent and
+                        ball_carrier.distance_to(nearest_opponent) < PRESSURE_DIST):
                     target_y += -20 if ball_carrier.y < nearest_opponent.y else 20
                 
                 ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8)
