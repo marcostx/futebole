@@ -1,8 +1,14 @@
-# Le utebole
+# Le Futebole
+
 
 # Soccer Simulation Project
 
 A simple 2D soccer simulation game built with Python and Pygame where two AI-controlled teams compete against each other.
+
+## Gameplay Preview
+
+![Gameplay Animation](assets/match.gif)
+
 
 ## Features
 
