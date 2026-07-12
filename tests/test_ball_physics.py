@@ -52,7 +52,10 @@ class BallBounceTest(unittest.TestCase):
         engine = GameEngine()
         engine.team1_ai.update = lambda dt: None
         engine.team2_ai.update = lambda dt: None
+        # Tear down the kickoff so the ball is genuinely free/untouched.
+        engine.kickoff_pending = False
         engine.ball.possession = None
+        engine.ball.last_toucher = None
         return engine
 
     def test_bounce_reverses_and_dampens_horizontal(self):

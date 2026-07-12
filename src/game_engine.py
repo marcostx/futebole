@@ -24,6 +24,13 @@ FOUL_COOLDOWN = 1.5
 # to the goal that the defending keeper naturally collects and distributes.
 GOAL_KICK_DIST = 40
 
+# At kickoff every player must be in their own half: positions are clamped
+# at least this far (px) from the halfway line.
+KICKOFF_HALF_MARGIN = 20
+# The team not taking the kickoff must also stay out of the center circle
+# (radius 50), so its players keep a wider margin from the halfway line.
+KICKOFF_OPPONENT_MARGIN = 60
+
 
 class GameEngine:
     def __init__(self):
@@ -79,8 +86,8 @@ class GameEngine:
         # Add players to teams
         self.create_players()
         
-        # Set initial positions
-        self.reset_positions()
+        # Set initial kickoff lineup: Team 1 takes the opening kickoff.
+        self.reset_positions(kickoff_team=self.team1)
     
     # 2-2-1 formation plus a goalkeeper for Team 1 (attacks right). Fractions
     # of the field; Team 2 mirrors the x fraction (1 - fx) since it attacks
@@ -111,26 +118,78 @@ class GameEngine:
         player.home_y = home_y
         team.add_player(player)
     
-    def reset_positions(self):
-        """Reset positions of all players and the ball."""
+    def _own_half_x(self, team, x, margin=KICKOFF_HALF_MARGIN):
+        """Clamp an x coordinate into the team's own half (kickoff rule)."""
+        center_x = self.field_x + self.field_width / 2
+        if team is self.team1:  # Team 1 defends the left half
+            return min(x, center_x - margin)
+        return max(x, center_x + margin)
+    
+    def reset_positions(self, kickoff_team=None):
+        """Line both teams up for a kickoff, each fully inside its own half.
+        
+        Formation homes that sit past the halfway line (e.g. the striker's)
+        are clamped back into the team's own half. With a `kickoff_team`,
+        its most advanced outfield player is placed on the center spot with
+        the ball and will pass to a nearby teammate (see update()); without
+        one the ball is left free at the center (used by tests).
+        """
+        center_x = self.field_x + self.field_width / 2
+        center_y = self.field_y + self.field_height / 2
+        
         # Reset ball position
-        self.ball.x = self.field_x + self.field_width // 2
-        self.ball.y = self.field_y + self.field_height // 2
+        self.ball.x = center_x
+        self.ball.y = center_y
         self.ball.vx = 0
         self.ball.vy = 0
         # Clear possession so the carry logic doesn't snap the ball back to a
-        # stale possessor after a goal/reset (kickoff is a free ball).
+        # stale possessor after a goal/reset.
         self.ball.possession = None
         self.ball.loose_timer = 0.0
         self.ball.last_toucher = None
         self.restart_team = None
         
-        # Send every player back to its formation home position.
-        for player in self.team1.players + self.team2.players:
-            player.x = player.home_x
-            player.y = player.home_y
-            player.vx = 0
-            player.vy = 0
+        # Line every player up at its formation home, kept in its own half.
+        # The non-kicking team also stays out of the center circle.
+        for team in (self.team1, self.team2):
+            margin = (KICKOFF_OPPONENT_MARGIN
+                      if kickoff_team is not None and team is not kickoff_team
+                      else KICKOFF_HALF_MARGIN)
+            for player in team.players:
+                player.x = self._own_half_x(team, player.home_x, margin)
+                player.y = player.home_y
+                player.vx = 0
+                player.vy = 0
+        
+        # The kickoff taker starts on the center spot with the ball.
+        self.kickoff_pending = kickoff_team is not None
+        if kickoff_team is not None:
+            outfield = [p for p in kickoff_team.players if not p.is_goalkeeper]
+            taker = min(outfield,
+                        key=lambda p: math.hypot(p.x - center_x, p.y - center_y))
+            taker.x, taker.y = center_x, center_y
+            self.ball.possession = taker
+            self.ball.last_toucher = taker
+    
+    def _perform_kickoff_pass(self):
+        """Kick off: pass to one of the two closest teammates, picked at random.
+        
+        Randomizing the receiver each kickoff keeps restarts from looking
+        scripted. Runs before the AIs act; if the taker is still on kick
+        cooldown the kickoff stays pending and is retried next frame.
+        """
+        taker = self.ball.possession
+        if taker is None:
+            self.kickoff_pending = False  # kickoff state was torn down
+            return
+        if not taker.can_act():
+            return
+        team = self._team_of(taker)
+        mates = [p for p in team.players
+                 if p is not taker and not p.is_goalkeeper]
+        closest = sorted(mates, key=taker.distance_to)[:2]
+        if closest and taker.pass_ball(self.ball, random.choice(closest)):
+            self.kickoff_pending = False
     
     def _same_team(self, player_a, player_b):
         """Whether two players belong to the same team."""
@@ -268,6 +327,10 @@ class GameEngine:
         if self.game_time >= self.match_duration:
             self.end_game()
         
+        # Take a pending kickoff pass before the AIs act on the ball.
+        if self.kickoff_pending:
+            self._perform_kickoff_pass()
+        
         # Update AI decisions
         self.team1_ai.update(dt)
         self.team2_ai.update(dt)
@@ -402,7 +465,9 @@ class GameEngine:
                 ball.vx *= -BALL_RESTITUTION  # Bounce with energy loss
         
         if scorer is not None:
-            self.reset_positions()
+            # The conceding team restarts play with the kickoff.
+            conceding = self.team2 if scorer == "team1" else self.team1
+            self.reset_positions(kickoff_team=conceding)
             return scorer
         
         if ball.y < self.field_y:
@@ -459,7 +524,7 @@ class GameEngine:
         for team in (self.team1, self.team2):
             team.shots = 0
             team.possession_time = 0.0
-        self.reset_positions()
+        self.reset_positions(kickoff_team=self.team1)
         self.last_update_time = pygame.time.get_ticks()
     
     def end_game(self):
