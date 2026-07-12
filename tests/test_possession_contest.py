@@ -107,7 +107,9 @@ class PossessionContestTest(unittest.TestCase):
         engine.ball.possession = holder
         self._place_on_ball(engine, opponent)  # opponent contests at the ball
 
-        with mock.patch.object(game_engine.random, "random", return_value=0.0):
+        # Tackle roll succeeds; foul roll fails (clean tackle).
+        with mock.patch.object(game_engine.random, "random",
+                               side_effect=[0.0, 1.0]):
             engine.resolve_possession()
 
         self.assertIs(engine.ball.possession, opponent)
