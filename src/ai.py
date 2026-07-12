@@ -234,6 +234,10 @@ class AIController:
         return (opponent.x + dx / dist * MARK_DIST,
                 opponent.y + dy / dist * MARK_DIST)
     
+    def _goal_side_of_ball(self, player):
+        """Whether the player is between the ball and our own goal."""
+        return (player.x - self.ball.x) * self.field_side < 0
+    
     def execute_defense_behavior(self, dt):
         """Execute defensive behavior for the team."""
         # Active player chases the ball. Gaining possession is resolved
@@ -251,7 +255,6 @@ class AIController:
                              self.ball.y - own_goal_y) < MARK_ZONE_DIST)
         assignments = self._mark_assignments() if threat else {}
         
-        # Unassigned players hold their formation shape (slid toward the ball)
         for player in self.team.players:
             if player is self.active_player:
                 continue
@@ -259,7 +262,14 @@ class AIController:
             if mark is not None:
                 mark_x, mark_y = self._mark_position(mark)
                 player.move_towards(mark_x, mark_y, player.max_speed * 0.85)
+            elif threat and not player.is_goalkeeper and self._goal_side_of_ball(player):
+                # Free defender loitering behind the ball with nobody to
+                # mark: converge on the carrier to help win the ball instead
+                # of standing on the goal line like an extra goalkeeper.
+                player.move_towards(self.ball.x, self.ball.y,
+                                    player.max_speed * 0.9)
             else:
+                # Everyone else holds the formation shape (slid to the ball).
                 target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.7)
     

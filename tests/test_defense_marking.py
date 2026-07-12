@@ -146,6 +146,40 @@ class DefenseBehaviorTest(unittest.TestCase):
         self.assertLess(angle1, 0.01)
         self.assertLess(angle2, 0.01)
 
+    def test_free_deep_defender_converges_on_the_carrier(self):
+        # Nobody left to mark and the defender is goal-side of the ball:
+        # instead of loitering by the goal line like an extra goalkeeper,
+        # it must attack the ball.
+        ai, ball = _defense_scenario((160.0, 300.0))
+        presser = _add_player(ai.team, "T1P5", 200.0, 300.0)
+        deep1 = _add_player(ai.team, "T1P1", 80.0, 250.0)
+        deep2 = _add_player(ai.team, "T1P2", 80.0, 350.0)
+        carrier = _add_player(ai.opponent_team, "T2P1", 160.0, 300.0)
+        ball.possession = carrier  # the only opponent near goal is the carrier
+        ai.active_player = presser
+
+        self.assertEqual(ai._mark_assignments(), {})
+        ai.execute_defense_behavior(1 / 60)
+
+        for deep in (deep1, deep2):
+            angle = _velocity_angle_towards(deep, ball.x, ball.y)
+            self.assertLess(angle, 0.01)
+
+    def test_free_defender_upfield_of_ball_holds_formation(self):
+        # A free teammate ahead of the ball (not goal-side) keeps shape
+        # rather than collapsing backwards onto the carrier.
+        ai, ball = _defense_scenario((160.0, 300.0))
+        presser = _add_player(ai.team, "T1P5", 200.0, 300.0)
+        upfield = _add_player(ai.team, "T1P3", 400.0, 300.0)
+        carrier = _add_player(ai.opponent_team, "T2P1", 160.0, 300.0)
+        ball.possession = carrier
+        ai.active_player = presser
+
+        ai.execute_defense_behavior(1 / 60)
+
+        angle = _velocity_angle_towards(upfield, *ai.formation_position(upfield))
+        self.assertLess(angle, 0.01)
+
     def test_formation_positioning_still_used_when_ball_is_far(self):
         ai, ball = _defense_scenario((600.0, 300.0))  # far from our goal
         presser = _add_player(ai.team, "T1P5", 550.0, 300.0)
