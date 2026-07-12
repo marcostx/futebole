@@ -443,21 +443,16 @@ class AIController:
                 return False
         return True
     
-    def _best_pass_target(self, carrier):
-        """Pick the best forward, open-laned, reachable teammate to pass to.
-        
-        Candidates must be within MAX_PASS_DIST, ahead of the carrier (toward
-        the opponent goal) so passes make progress, onside, and have an
-        unblocked passing lane so the ball isn't given straight to an
-        opponent. Returns None if there is no such option.
-        """
-        opponent_goal_x = FIELD_MAX_X if self.field_side == 1 else FIELD_MIN_X
+    def _pass_candidates(self, carrier, forward):
+        """Open-laned, reachable, onside teammates ahead of (or behind) the carrier."""
         candidates = []
         for p in self.team.players:
             if p is carrier or carrier.distance_to(p) > MAX_PASS_DIST:
                 continue
-            # Only forward options (closer to the opponent goal than the carrier).
-            if (p.x - carrier.x) * self.field_side <= 0:
+            # Split forward options (closer to the opponent goal than the
+            # carrier) from backward/lateral ones.
+            is_forward = (p.x - carrier.x) * self.field_side > 0
+            if is_forward != forward:
                 continue
             # Never pass to a teammate in an offside position.
             if self._is_offside_position(p):
@@ -466,6 +461,21 @@ class AIController:
             if not self._lane_is_open(carrier, p):
                 continue
             candidates.append(p)
+        return candidates
+    
+    def _best_pass_target(self, carrier, allow_backward=False):
+        """Pick the best open-laned, reachable teammate to pass to.
+        
+        Forward options (toward the opponent goal) are always preferred so
+        passes make progress. With `allow_backward` (used when the carrier
+        is under pressure and needs an outlet), nobody open in front falls
+        back to a backward/lateral pass to recycle possession instead of
+        dribbling into the presser. Returns None if no lane is open.
+        """
+        opponent_goal_x = FIELD_MAX_X if self.field_side == 1 else FIELD_MIN_X
+        candidates = self._pass_candidates(carrier, forward=True)
+        if not candidates and allow_backward:
+            candidates = self._pass_candidates(carrier, forward=False)
         if not candidates:
             return None
         
@@ -514,8 +524,10 @@ class AIController:
                 elif under_pressure:
                     # Opponent too close: offload to a teammate to escape the
                     # press instead of dribbling into them (and losing the ball
-                    # in a tug-of-war loop).
-                    target = self._best_pass_target(ball_carrier)
+                    # in a tug-of-war loop). A backward outlet is allowed when
+                    # nobody is open in front.
+                    target = self._best_pass_target(ball_carrier,
+                                                    allow_backward=True)
                     if target is not None:
                         acted = ball_carrier.pass_ball(self.ball, target)
                 else:
