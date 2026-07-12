@@ -24,6 +24,7 @@ def _quiet_engine():
     engine = GameEngine()
     engine.team1_ai.update = lambda dt: None
     engine.team2_ai.update = lambda dt: None
+    engine.kickoff_pending = False  # no kickoff pass interference
     for i, p in enumerate(engine.team1.players + engine.team2.players):
         p.x, p.y = 10000.0 + i * 100, 10000.0
         p.action_cooldown = 0.0

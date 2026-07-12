@@ -131,6 +131,7 @@ class EngineIntegrationTest(unittest.TestCase):
         # Freeze AI so possession is stable for the test.
         engine.team1_ai.update = lambda dt: None
         engine.team2_ai.update = lambda dt: None
+        engine.kickoff_pending = False  # no kickoff pass interference
         return engine
 
     def _tick(self, engine, dt_ms=16):

@@ -84,7 +84,10 @@ class GoalDetectionTest(unittest.TestCase):
         engine = GameEngine()
         engine.team1_ai.update = lambda dt: None
         engine.team2_ai.update = lambda dt: None
+        # Tear down the kickoff so the ball is genuinely free/untouched.
+        engine.kickoff_pending = False
         engine.ball.possession = None
+        engine.ball.last_toucher = None
         return engine
 
     def test_goal_in_left_net_scores_for_team2(self):
