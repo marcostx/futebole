@@ -67,6 +67,24 @@ class QuickTurnTest(unittest.TestCase):
         self.assertAlmostEqual(carrier.facing_x, 0.6)
         self.assertAlmostEqual(carrier.facing_y, 0.8)
 
+    def test_zero_distance_pass_is_refused_and_keeps_the_ball(self):
+        team, carrier, ball = _carrier_with_ball()
+        on_top = _add_player(team, "T1P2", carrier.x, carrier.y)
+
+        self.assertFalse(carrier.pass_ball(ball, on_top))
+        self.assertIs(ball.possession, carrier)
+        self.assertTrue(carrier.can_act())  # no cooldown burned
+
+    def test_adjacent_receiver_gets_the_ball_toward_them_not_past(self):
+        # Receiver closer than the carry offset: the kick direction must be
+        # carrier->receiver, not ball->receiver (which would point backward
+        # after the ball swings to the receiver's side).
+        team, carrier, ball = _carrier_with_ball()
+        adjacent = _add_player(team, "T1P2", carrier.x + 10, carrier.y)
+
+        self.assertTrue(carrier.pass_ball(ball, adjacent))
+        self.assertGreater(ball.vx, 0.0)
+
 
 class PassPowerTest(unittest.TestCase):
     def _pass_speed(self, dist):
@@ -134,6 +152,38 @@ class LongPassTargetTest(unittest.TestCase):
         _add_player(ai.team, "T1P2", carrier.x - 200, carrier.y)
 
         self.assertIsNone(ai._best_pass_target(carrier, allow_backward=True))
+
+
+class SupportRunOnsideTest(unittest.TestCase):
+    def test_support_run_holds_a_buffer_inside_the_offside_line(self):
+        from src.ai import ONSIDE_BUFFER
+        team = Team("Team 1", (255, 0, 0))
+        carrier = _add_player(team, "T1P1", 400.0, 300.0)
+        runner = _add_player(team, "T1P2", 430.0, 300.0)
+        opp = Team("Team 2", (0, 0, 255))
+        # Offside line (second-last opponent) well before the full run.
+        _add_player(opp, "T2GK", 729.0, 300.0)
+        line = _add_player(opp, "T2D", 480.0, 300.0)
+        ball = Ball(carrier.x, carrier.y)
+        ball.possession = carrier
+        ai = AIController(team, opp, ball)
+        ai.team_state = "attack"
+        ai.active_player = carrier
+        ai.support_player = runner
+
+        ai.execute_attack_behavior(1 / 60)
+
+        # The runner heads to the held position: short of the line by the
+        # buffer, not to the full SUPPORT_RUN_DIST (550) beyond it.
+        expected_x = line.x - ONSIDE_BUFFER
+        self.assertGreater(runner.vx, 0.0)
+        # Integrate a few frames: the runner must stop near the held point
+        # and never cross the offside line.
+        for _ in range(240):
+            ai.execute_attack_behavior(1 / 60)
+            runner.update(1 / 60)
+        self.assertLessEqual(runner.x, line.x)
+        self.assertAlmostEqual(runner.x, expected_x, delta=8)
 
 
 if __name__ == "__main__":

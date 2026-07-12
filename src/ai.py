@@ -40,6 +40,10 @@ LONG_PASS_MIN_OPENNESS = 60
 # short-pass range on purpose: the runner stretches the defense and gives
 # the carrier a driven long-ball option toward the goal.
 SUPPORT_RUN_DIST = 150
+# The runner holds this far (px) inside the offside line: movement can
+# overshoot its target by a frame or two, and a runner flickering offside
+# would keep dropping out of the pass-candidate list.
+ONSIDE_BUFFER = 12
 
 # A passing lane is considered blocked if an opponent is within this distance
 # (px) of the carrier->receiver segment.
@@ -610,9 +614,11 @@ class AIController:
                 run_x = ball_carrier.x + SUPPORT_RUN_DIST * self.field_side
                 line_x = self._second_last_opponent_x()
                 if line_x is not None:
-                    # Hold the run at the offside line so the pass is legal.
-                    run_x = (min(run_x, line_x) if self.field_side == 1
-                             else max(run_x, line_x))
+                    # Hold the run a buffer inside the offside line so the
+                    # pass stays legal even if movement overshoots a little.
+                    hold_x = line_x - ONSIDE_BUFFER * self.field_side
+                    run_x = (min(run_x, hold_x) if self.field_side == 1
+                             else max(run_x, hold_x))
                 sx = max(FIELD_MIN_X + FORMATION_MARGIN,
                          min(run_x, FIELD_MAX_X - FORMATION_MARGIN))
                 sy = max(FIELD_MIN_Y + FORMATION_MARGIN,

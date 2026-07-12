@@ -225,19 +225,20 @@ class Player(Entity):
         """Pass the ball to a teammate, turning to face them first."""
         # Must have the ball and be off cooldown
         if ball.possession == self and self.can_act():
-            # Quick direction switch: turn toward the receiver and bring the
-            # carried ball to that side, so the carrier can play the ball
-            # backward/sideways naturally while dribbling another way.
             to_target_x = target_player.x - self.x
             to_target_y = target_player.y - self.y
             pass_dist = math.hypot(to_target_x, to_target_y)
-            if pass_dist > 0:
-                self.facing_x = to_target_x / pass_dist
-                self.facing_y = to_target_y / pass_dist
-                self.carry_ball(ball)
+            if pass_dist == 0:
+                # Degenerate zero-distance pass: refuse it rather than
+                # kicking with no direction, which would drop the ball loose.
+                return False
             
-            direction_x = target_player.x - ball.x
-            direction_y = target_player.y - ball.y
+            # Quick direction switch: turn toward the receiver and bring the
+            # carried ball to that side, so the carrier can play the ball
+            # backward/sideways naturally while dribbling another way.
+            self.facing_x = to_target_x / pass_dist
+            self.facing_y = to_target_y / pass_dist
+            self.carry_ball(ball)
             
             # Size the kick to the pass distance so the ball dies near the
             # receiver's feet: short passes stay soft, long balls are driven.
@@ -250,8 +251,11 @@ class Player(Entity):
             power_factor = max(MIN_POWER_FACTOR, min(1.0, self.current_stamina / 20))
             self.current_stamina = max(0, self.current_stamina - 20)
             
-            # Kick the ball
-            ball.kick(direction_x, direction_y, power * power_factor)
+            # Kick along the carrier->receiver direction. Using the ball's
+            # own position instead could flip the direction for a receiver
+            # closer than the carry offset (the repositioned ball would sit
+            # just past them).
+            ball.kick(to_target_x, to_target_y, power * power_factor)
             self.action_cooldown = ACTION_COOLDOWN
             return True
         return False
