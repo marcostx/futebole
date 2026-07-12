@@ -14,6 +14,16 @@ from src.ui import UI
 # current holder while within control range. Tunable.
 TACKLE_SUCCESS_PROB = 0.05
 
+# Probability that a won tackle is instead whistled as a foul: the holder
+# keeps the ball (a simplified free kick) and the fouler is booked with a
+# long action cooldown so they cannot immediately challenge again.
+FOUL_PROB = 0.15
+FOUL_COOLDOWN = 1.5
+
+# How far (px) in front of the goal line a goal kick is placed. Close enough
+# to the goal that the defending keeper naturally collects and distributes.
+GOAL_KICK_DIST = 40
+
 
 class GameEngine:
     def __init__(self):
@@ -37,6 +47,10 @@ class GameEngine:
         self.game_time = 0  # in seconds
         self.match_duration = 90  # 90 seconds match
         self.last_update_time = pygame.time.get_ticks()
+        
+        # Team entitled to the next restart (throw-in / corner / goal kick).
+        # While set, only its players may take possession of the ball.
+        self.restart_team = None
         
         # Team scores
         self.team1_score = 0
@@ -108,6 +122,8 @@ class GameEngine:
         # stale possessor after a goal/reset (kickoff is a free ball).
         self.ball.possession = None
         self.ball.loose_timer = 0.0
+        self.ball.last_toucher = None
+        self.restart_team = None
         
         # Send every player back to its formation home position.
         for player in self.team1.players + self.team2.players:
@@ -129,9 +145,12 @@ class GameEngine:
         Rules:
         - A player can only gain the ball while off cooldown and in range, so
           a player who just kicked (on cooldown) cannot instantly reclaim it.
-        - A free ball goes to the closest eligible player.
+        - A free ball goes to the closest eligible player; during a restart
+          (throw-in / corner / goal kick) only the entitled team may take it.
         - The current holder keeps the ball unless a contesting opponent wins
-          a probabilistic tackle; teammates never steal from each other.
+          a probabilistic tackle; teammates never steal from each other. A won
+          tackle can instead be whistled as a foul: the holder keeps the ball
+          and the fouler is booked with a long cooldown.
         """
         ball = self.ball
         
@@ -151,18 +170,29 @@ class GameEngine:
             holder = None
         
         # Players able to take control right now: in range and off cooldown.
+        # During a restart, only the entitled team's players are eligible.
         takers = [p for p in all_players
-                  if p is not holder and p.can_control_ball(ball) and p.can_act()]
+                  if p is not holder and p.can_control_ball(ball) and p.can_act()
+                  and (self.restart_team is None or p in self.restart_team.players)]
         
         if holder is None:
             if takers:
                 ball.possession = min(takers, key=lambda p: p.distance_to(ball))
+                ball.last_toucher = ball.possession
+                self.restart_team = None  # restart taken: play on
             return
         
         # Holder keeps the ball unless an opponent wins a tackle this frame.
         opponents = [p for p in takers if not self._same_team(p, holder)]
         if opponents and random.random() < TACKLE_SUCCESS_PROB:
-            ball.possession = min(opponents, key=lambda p: p.distance_to(ball))
+            tackler = min(opponents, key=lambda p: p.distance_to(ball))
+            if random.random() < FOUL_PROB:
+                # Foul: simplified free kick — the holder keeps the ball and
+                # the fouler cannot act (challenge/kick) for a while.
+                tackler.action_cooldown = FOUL_COOLDOWN
+            else:
+                ball.possession = tackler
+                ball.last_toucher = tackler
     
     def _clamp_to_field(self, player):
         """Clamp a player's center point to the field boundaries.
@@ -268,15 +298,69 @@ class GameEngine:
         return (self.field_y + self.field_height * 0.3,
                 self.field_y + self.field_height * 0.7)
     
+    def _team_of(self, player):
+        """The Team a player belongs to, or None."""
+        if player in self.team1.players:
+            return self.team1
+        if player in self.team2.players:
+            return self.team2
+        return None
+    
+    def _award_restart(self, team, x, y):
+        """Place a dead ball at (x, y) that only `team` may take.
+        
+        The AI's normal chase behavior sends the entitled team's nearest
+        player to collect it; opponents cannot gain possession until the
+        restart is taken (see resolve_possession).
+        """
+        ball = self.ball
+        ball.x, ball.y = x, y
+        ball.vx = ball.vy = 0
+        ball.possession = None
+        ball.loose_timer = 0.0
+        self.restart_team = team
+    
+    def _goal_line_restart(self, defending, attacking, goal_x):
+        """Corner or goal kick after the ball left play over a goal line.
+        
+        Last touched by the defending team: corner for the attackers at the
+        nearest corner. Last touched by the attackers: goal kick for the
+        defenders in front of their goal.
+        """
+        ball = self.ball
+        inward = 1 if goal_x == self.field_x else -1
+        toucher_team = self._team_of(ball.last_toucher)
+        
+        if toucher_team is defending:
+            corner_y = (self.field_y if ball.y < self.field_y + self.field_height / 2
+                        else self.field_y + self.field_height)
+            self._award_restart(attacking, goal_x, corner_y)
+        else:
+            self._award_restart(defending,
+                                goal_x + GOAL_KICK_DIST * inward,
+                                self.field_y + self.field_height / 2)
+    
+    def _throw_in(self, side_y):
+        """Throw-in on a sideline for the team that didn't touch the ball last."""
+        toucher_team = self._team_of(self.ball.last_toucher)
+        team = self.team2 if toucher_team is self.team1 else self.team1
+        x = max(self.field_x, min(self.ball.x, self.field_x + self.field_width))
+        self._award_restart(team, x, side_y)
+    
     def handle_ball_boundaries(self):
         """Resolve the ball against the field edges.
         
         Scores a goal when the ball's center crosses a goal line within the
-        goal mouth, otherwise bounces the ball off the wall. Returns "team1",
-        "team2", or None depending on whether a goal was scored.
+        goal mouth. A loose ball leaving the field restarts play: a throw-in
+        on the sidelines, a corner or goal kick on the goal lines (attributed
+        via the last toucher). A carried ball (glued just past the line by a
+        dribbler hugging the boundary) and a ball with no toucher yet keep
+        the old clamp-and-bounce behavior. Returns "team1", "team2", or None
+        depending on whether a goal was scored.
         """
         ball = self.ball
         goal_top, goal_bottom = self.goal_mouth()
+        whistle = ball.possession is None and ball.last_toucher is not None
         scorer = None
         
         if ball.x < self.field_x:
@@ -284,6 +368,8 @@ class GameEngine:
             if goal_top <= ball.y <= goal_bottom:
                 self.team2_score += 1
                 scorer = "team2"
+            elif whistle:
+                self._goal_line_restart(self.team1, self.team2, self.field_x)
             else:
                 ball.x = self.field_x
                 ball.vx *= -BALL_RESTITUTION  # Bounce with energy loss
@@ -292,6 +378,9 @@ class GameEngine:
             if goal_top <= ball.y <= goal_bottom:
                 self.team1_score += 1
                 scorer = "team1"
+            elif whistle:
+                self._goal_line_restart(self.team2, self.team1,
+                                        self.field_x + self.field_width)
             else:
                 ball.x = self.field_x + self.field_width
                 ball.vx *= -BALL_RESTITUTION  # Bounce with energy loss
@@ -301,11 +390,17 @@ class GameEngine:
             return scorer
         
         if ball.y < self.field_y:
-            ball.y = self.field_y
-            ball.vy *= -BALL_RESTITUTION  # Bounce with energy loss
+            if whistle:
+                self._throw_in(self.field_y)
+            else:
+                ball.y = self.field_y
+                ball.vy *= -BALL_RESTITUTION  # Bounce with energy loss
         elif ball.y > self.field_y + self.field_height:
-            ball.y = self.field_y + self.field_height
-            ball.vy *= -BALL_RESTITUTION  # Bounce with energy loss
+            if whistle:
+                self._throw_in(self.field_y + self.field_height)
+            else:
+                ball.y = self.field_y + self.field_height
+                ball.vy *= -BALL_RESTITUTION  # Bounce with energy loss
         
         return None
     

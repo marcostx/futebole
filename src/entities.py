@@ -85,6 +85,10 @@ class Ball(Entity):
         self.radius = 5
         self.possession = None  # Which player has possession of the ball
         self.loose_timer = 0.0  # Seconds the ball stays uncontrollable in flight
+        # Last player to control the ball; kicks always come from the
+        # possessor, so this attributes out-of-bounds exits (throw-in,
+        # corner, goal kick) to the right team.
+        self.last_toucher = None
     
     def cap_speed(self):
         """Clamp the ball's speed to BALL_MAX_SPEED."""
