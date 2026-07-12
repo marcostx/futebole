@@ -54,6 +54,20 @@ FIELD_MIN_Y, FIELD_MAX_Y = 50, 550
 # (glued ~15px ahead of them) over the line, conceding a restart.
 DRIBBLE_MARGIN = 25
 
+# Man-marking. When the opposing attack gets this close (px) to our goal
+# center, off-ball defenders mark nearby opponents instead of dropping with
+# the formation (which used to park them on their own goal line).
+MARK_ZONE_DIST = 300
+# Only opponents this close (px) to our goal are worth marking.
+MARK_TARGET_RANGE = 320
+# A marker stands this far (px) from its man, on the goal side.
+MARK_DIST = 22
+
+# Formation/support targets stay this far (px) inside the field so off-ball
+# players hold shape near a boundary instead of being clamped onto the line
+# (the attack push / defense drop used to pile them on the goal lines).
+FORMATION_MARGIN = 35
+
 # Goal mouth extents, derived from the field bounds exactly like
 # GameEngine.goal_mouth (30%-70% of field height).
 GOAL_MOUTH_TOP = FIELD_MIN_Y + (FIELD_MAX_Y - FIELD_MIN_Y) * 0.3
@@ -147,8 +161,10 @@ class AIController:
         elif self.team_state == "defense":
             shift_x -= DEFENSE_DROP * self.field_side
         
-        target_x = max(FIELD_MIN_X, min(player.home_x + shift_x, FIELD_MAX_X))
-        target_y = max(FIELD_MIN_Y, min(player.home_y + shift_y, FIELD_MAX_Y))
+        target_x = max(FIELD_MIN_X + FORMATION_MARGIN,
+                       min(player.home_x + shift_x, FIELD_MAX_X - FORMATION_MARGIN))
+        target_y = max(FIELD_MIN_Y + FORMATION_MARGIN,
+                       min(player.home_y + shift_y, FIELD_MAX_Y - FORMATION_MARGIN))
         return target_x, target_y
     
     def _nearest_outfield_to_ball(self, team):
@@ -179,6 +195,49 @@ class AIController:
         else:
             self.team_state = "defense"  # They have the ball, defend
     
+    def _mark_assignments(self):
+        """Pair off-ball defenders with opponents to mark, nearest first.
+        
+        Markers are our outfield players except the presser; targets are
+        opponent outfielders near our goal, except their ball carrier (the
+        presser handles them). Greedy nearest-pair matching, one marker per
+        target, so two defenders never mark the same man.
+        """
+        own_goal_x, own_goal_y = self._own_goal_center()
+        markers = [p for p in self.team.players
+                   if p is not self.active_player and not p.is_goalkeeper]
+        targets = [o for o in self.opponent_team.players
+                   if o is not self.ball.possession and not o.is_goalkeeper
+                   and math.hypot(o.x - own_goal_x,
+                                  o.y - own_goal_y) < MARK_TARGET_RANGE]
+        
+        pairs = sorted(((m.distance_to(t), m, t)
+                        for m in markers for t in targets),
+                       key=lambda pair: pair[0])
+        assignments = {}
+        taken = set()
+        for _, marker, target in pairs:
+            if marker in assignments or target in taken:
+                continue
+            assignments[marker] = target
+            taken.add(target)
+        return assignments
+    
+    def _mark_position(self, opponent):
+        """Point MARK_DIST goal-side of the opponent (between them and our goal)."""
+        own_goal_x, own_goal_y = self._own_goal_center()
+        dx = own_goal_x - opponent.x
+        dy = own_goal_y - opponent.y
+        dist = math.hypot(dx, dy)
+        if dist == 0:
+            return opponent.x, opponent.y
+        return (opponent.x + dx / dist * MARK_DIST,
+                opponent.y + dy / dist * MARK_DIST)
+    
+    def _goal_side_of_ball(self, player):
+        """Whether the player is between the ball and our own goal."""
+        return (player.x - self.ball.x) * self.field_side < 0
+    
     def execute_defense_behavior(self, dt):
         """Execute defensive behavior for the team."""
         # Active player chases the ball. Gaining possession is resolved
@@ -188,9 +247,29 @@ class AIController:
             self.active_player.move_towards(self.ball.x, self.ball.y, 
                                            self.active_player.max_speed)
         
-        # Other players hold their formation shape (slid toward the ball)
+        # Attack near our goal: off-ball defenders man-mark opponents on the
+        # goal side instead of dropping with the formation until the field
+        # clamp piles them onto their own goal line.
+        own_goal_x, own_goal_y = self._own_goal_center()
+        threat = (math.hypot(self.ball.x - own_goal_x,
+                             self.ball.y - own_goal_y) < MARK_ZONE_DIST)
+        assignments = self._mark_assignments() if threat else {}
+        
         for player in self.team.players:
-            if player != self.active_player:
+            if player is self.active_player:
+                continue
+            mark = assignments.get(player)
+            if mark is not None:
+                mark_x, mark_y = self._mark_position(mark)
+                player.move_towards(mark_x, mark_y, player.max_speed * 0.85)
+            elif threat and not player.is_goalkeeper and self._goal_side_of_ball(player):
+                # Free defender loitering behind the ball with nobody to
+                # mark: converge on the carrier to help win the ball instead
+                # of standing on the goal line like an extra goalkeeper.
+                player.move_towards(self.ball.x, self.ball.y,
+                                    player.max_speed * 0.9)
+            else:
+                # Everyone else holds the formation shape (slid to the ball).
                 target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.7)
     
@@ -481,8 +560,11 @@ class AIController:
             if player is ball_carrier:
                 continue
             if player is self.support_player:
-                sx = max(FIELD_MIN_X, min(ball_carrier.x + 60 * self.field_side, FIELD_MAX_X))
-                sy = max(FIELD_MIN_Y, min(ball_carrier.y, FIELD_MAX_Y))
+                sx = max(FIELD_MIN_X + FORMATION_MARGIN,
+                         min(ball_carrier.x + 60 * self.field_side,
+                             FIELD_MAX_X - FORMATION_MARGIN))
+                sy = max(FIELD_MIN_Y + FORMATION_MARGIN,
+                         min(ball_carrier.y, FIELD_MAX_Y - FORMATION_MARGIN))
                 player.move_towards(sx, sy, player.max_speed * 0.9)
             else:
                 target_x, target_y = self.formation_position(player)
