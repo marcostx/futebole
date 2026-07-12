@@ -73,6 +73,10 @@ MIN_SHOT_ANGLE = 0.35
 # scale term at maximum shooting range, so long shots are less precise.
 SHOT_NOISE_BASE = 5
 SHOT_NOISE_SCALE = 15
+# Shots aim this far (px) beyond the goal line so the kick always has a
+# forward component: a target exactly on the line degenerates into a
+# vertical (unscoreable) kick when the ball sits on the line itself.
+SHOT_DEPTH = 10
 
 
 class AIController:
@@ -298,7 +302,9 @@ class AIController:
         
         dist = math.hypot(goal_x - shooter.x, target_y - shooter.y)
         noise = SHOT_NOISE_BASE + SHOT_NOISE_SCALE * min(1.0, dist / SHOOT_RANGE)
-        return goal_x, target_y + random.uniform(-noise, noise)
+        # Aim past the goal line so the shot always drives into the net.
+        target_x = goal_x + SHOT_DEPTH * self.field_side
+        return target_x, target_y + random.uniform(-noise, noise)
     
     def _openness(self, player):
         """Distance (px) from a player to the nearest opponent."""
@@ -424,7 +430,8 @@ class AIController:
                     # driving into the corner.
                     dy = opponent_goal_y - ball_carrier.y
                     target_y += max(-20.0, min(20.0, dy))
-                if nearest_opponent and ball_carrier.distance_to(nearest_opponent) < 30:
+                if (nearest_opponent and
+                        ball_carrier.distance_to(nearest_opponent) < PRESSURE_DIST):
                     target_y += -20 if ball_carrier.y < nearest_opponent.y else 20
                 
                 ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8)

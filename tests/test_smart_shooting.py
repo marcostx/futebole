@@ -20,7 +20,7 @@ import pygame  # noqa: F401
 from src import ai as ai_module
 from src.ai import (AIController, GOAL_MOUTH_BOTTOM, GOAL_MOUTH_TOP,
                     MIN_SHOT_ANGLE, PRESSURE_DIST, SHOOT_RANGE,
-                    SHOT_CORNER_MARGIN)
+                    SHOT_CORNER_MARGIN, SHOT_DEPTH)
 from src.entities import Ball, Player, Team
 
 TOP_CORNER = GOAL_MOUTH_TOP + SHOT_CORNER_MARGIN
@@ -78,7 +78,8 @@ class ShotTargetTest(unittest.TestCase):
         _add_player(ai.opponent_team, "T2GK", 729.0, 250.0, goalkeeper=True)
         with self._no_noise():
             tx, ty = ai._pick_shot_target(shooter)
-        self.assertEqual(tx, 750)
+        # Target sits past the goal line so the kick drives into the net.
+        self.assertAlmostEqual(tx, 750 + SHOT_DEPTH)
         self.assertAlmostEqual(ty, BOTTOM_CORNER)
 
     def test_aims_at_corner_away_from_keeper_bottom(self):
@@ -119,12 +120,13 @@ class ShotDecisionTest(unittest.TestCase):
         with mock.patch.object(ai_module.random, "uniform", return_value=0.0):
             ai.execute_attack_behavior(1 / 60)
 
-        # Shot fired toward the bottom corner (750, 385): down and to the right.
+        # Shot fired toward the bottom corner: down and to the right.
         self.assertIsNone(ball.possession)
         self.assertGreater(ball.vx, 0.0)
         self.assertGreater(ball.vy, 0.0)
         angle = math.atan2(ball.vy, ball.vx)
-        expected = math.atan2(BOTTOM_CORNER - shooter.y, 750 - shooter.x)
+        expected = math.atan2(BOTTOM_CORNER - shooter.y,
+                              750 + SHOT_DEPTH - shooter.x)
         self.assertAlmostEqual(angle, expected, places=5)
 
     def test_passes_instead_of_shooting_from_tight_angle(self):
@@ -158,6 +160,18 @@ class ShotDecisionTest(unittest.TestCase):
     def test_still_shoots_under_pressure_when_angle_is_good(self):
         ai, shooter, ball = _shooter_scenario((650.0, 300.0))
         _add_player(ai.opponent_team, "T2P1", 660.0, 300.0)  # presser
+
+        ai.execute_attack_behavior(1 / 60)
+
+        self.assertIsNone(ball.possession)
+        self.assertGreater(ball.vx, 0.0)
+
+    def test_shot_from_the_goal_line_still_drives_forward(self):
+        # Ball carried right on the goal line (engine clamping can put it
+        # there): the shot target sits past the line, so the kick must keep
+        # a forward component instead of degenerating into a vertical ball.
+        ai, shooter, ball = _shooter_scenario((750.0, 300.0))
+        ball.x, ball.y = shooter.x, shooter.y
 
         ai.execute_attack_behavior(1 / 60)
 
