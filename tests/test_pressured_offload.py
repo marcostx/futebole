@@ -8,14 +8,12 @@ to a ball ping-pong loop.
 
 import os
 import unittest
-from unittest import mock
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame
 
-from src import ai as ai_module
 from src.ai import AIController, PRESSURE_DIST, SHOOT_RANGE
 from src.entities import Ball, Player, Team
 
@@ -68,12 +66,10 @@ class PressuredOffloadTest(unittest.TestCase):
         opponent.x, opponent.y = 700.0, 300.0  # far away
         self.assertGreater(carrier.distance_to(opponent), PRESSURE_DIST)
 
-        # Suppress the stochastic build-up pass so we isolate the "not
-        # pressured => keep the ball and dribble" behavior deterministically.
-        with mock.patch.object(ai_module.random, "random", return_value=1.0):
-            ai.execute_attack_behavior(1 / 60)
+        # No pressure and no openness advantage for either teammate (opponent
+        # is deeper than both), so build-up keeps the ball and dribbles.
+        ai.execute_attack_behavior(1 / 60)
 
-        # No forced release: still in possession, and moving (dribbling).
         self.assertIs(ball.possession, carrier)
         self.assertGreater(abs(carrier.vx) + abs(carrier.vy), 0.0)
 

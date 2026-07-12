@@ -29,6 +29,20 @@ SHOOT_RANGE = 150
 # ball's rolling physics. Passes are only attempted to teammates within range.
 MAX_PASS_DIST = 130
 
+# A passing lane is considered blocked if an opponent is within this distance
+# (px) of the carrier->receiver segment.
+LANE_BLOCK_RADIUS = 25
+
+# Opponents whose projection onto the lane falls before this fraction of the
+# segment are ignored by the lane check: they are beside the carrier (that is
+# the "pressure" situation, handled separately), not actually in the lane.
+LANE_START_T = 0.15
+
+# An unpressured carrier only passes when the receiver is at least this much
+# (px) more open than the carrier — i.e. the pass clearly improves the
+# team's position rather than cycling the ball for its own sake.
+OPEN_ADVANTAGE = 5
+
 # Field geometry (matches GameEngine: 800x600 screen, 50px margins).
 FIELD_CENTER_X = 400
 FIELD_CENTER_Y = 300
@@ -144,12 +158,43 @@ class AIController:
                 target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.6)
     
-    def _best_pass_target(self, carrier):
-        """Pick the best forward, open, reachable teammate to pass to.
+    def _openness(self, player):
+        """Distance (px) from a player to the nearest opponent."""
+        return min((player.distance_to(o) for o in self.opponent_team.players),
+                   default=1e9)
+    
+    def _lane_is_open(self, carrier, receiver):
+        """Whether the straight pass lane carrier->receiver is free of opponents.
         
-        Only teammates within MAX_PASS_DIST and ahead of the carrier (toward the
-        opponent goal) are considered, so passes make progress and the ball
-        isn't cycled sideways/backwards. Returns None if there is no such option.
+        An opponent blocks the lane if it is within LANE_BLOCK_RADIUS of the
+        segment. Opponents projecting onto the very start of the segment are
+        ignored: an opponent beside the carrier is the "pressure" situation,
+        which is handled by the offload logic, not a blocked lane.
+        """
+        seg_x = receiver.x - carrier.x
+        seg_y = receiver.y - carrier.y
+        seg_len_sq = seg_x ** 2 + seg_y ** 2
+        if seg_len_sq == 0:
+            return True
+        
+        for opp in self.opponent_team.players:
+            # Projection parameter of the opponent onto the segment, in [0, 1]
+            t = ((opp.x - carrier.x) * seg_x + (opp.y - carrier.y) * seg_y) / seg_len_sq
+            if t < LANE_START_T or t > 1:
+                continue
+            closest_x = carrier.x + t * seg_x
+            closest_y = carrier.y + t * seg_y
+            if math.hypot(opp.x - closest_x, opp.y - closest_y) < LANE_BLOCK_RADIUS:
+                return False
+        return True
+    
+    def _best_pass_target(self, carrier):
+        """Pick the best forward, open-laned, reachable teammate to pass to.
+        
+        Candidates must be within MAX_PASS_DIST, ahead of the carrier (toward
+        the opponent goal) so passes make progress, and have an unblocked
+        passing lane so the ball isn't given straight to an opponent.
+        Returns None if there is no such option.
         """
         opponent_goal_x = FIELD_MAX_X if self.field_side == 1 else FIELD_MIN_X
         candidates = []
@@ -159,14 +204,16 @@ class AIController:
             # Only forward options (closer to the opponent goal than the carrier).
             if (p.x - carrier.x) * self.field_side <= 0:
                 continue
+            # Only options whose passing lane isn't blocked by an opponent.
+            if not self._lane_is_open(carrier, p):
+                continue
             candidates.append(p)
         if not candidates:
             return None
         
         def score(p):
             # Openness: distance to the nearest opponent (bigger is better).
-            openness = min((p.distance_to(o) for o in self.opponent_team.players),
-                           default=1e9)
+            openness = self._openness(p)
             # Prefer teammates closer to the opponent goal.
             forwardness = -abs(opponent_goal_x - p.x)
             return openness + 0.5 * forwardness
@@ -209,9 +256,14 @@ class AIController:
                     target = self._best_pass_target(ball_carrier)
                     if target is not None:
                         acted = ball_carrier.pass_ball(self.ball, target)
-                elif random.random() < 0.03:  # occasional build-up pass
+                else:
+                    # Build-up: pass only when it clearly improves the team's
+                    # position — the receiver must be meaningfully more open
+                    # than the carrier (lane and range already vetted).
                     target = self._best_pass_target(ball_carrier)
-                    if target is not None:
+                    if (target is not None and
+                            self._openness(target) >
+                            self._openness(ball_carrier) + OPEN_ADVANTAGE):
                         acted = ball_carrier.pass_ball(self.ball, target)
             
             if not acted:
