@@ -84,20 +84,37 @@ class ThrowInTest(unittest.TestCase):
         self.assertEqual((engine.ball.vx, engine.ball.vy), (0, 0))
         self.assertIsNone(engine.ball.possession)
 
-    def test_carried_ball_over_sideline_is_not_a_throw_in(self):
-        # A dribbler hugging the line carries the ball glued slightly past
-        # it; that must not be whistled out of play.
+    def test_carried_ball_over_sideline_is_out_off_the_dribbler(self):
+        # A dribbler conducting the ball over the line loses it: throw-in
+        # for the other team instead of grinding along the boundary.
         engine = _quiet_engine()
         carrier = engine.team1.players[0]
         engine.ball.possession = carrier
-        engine.ball.last_toucher = carrier
+        engine.ball.last_toucher = None  # attribution must come from carrying
         engine.ball.y = engine.field_y - 5
-        engine.ball.vy = -100.0
 
         engine.handle_ball_boundaries()
 
-        self.assertIsNone(engine.restart_team)
-        self.assertIs(engine.ball.possession, carrier)
+        self.assertIs(engine.restart_team, engine.team2)
+        self.assertIsNone(engine.ball.possession)
+        self.assertIs(engine.ball.last_toucher, carrier)
+        self.assertEqual(engine.ball.y, engine.field_y)
+
+    def test_carried_ball_over_own_goal_line_gives_corner(self):
+        # A team1 defender dribbling over their own (left) goal line outside
+        # the mouth concedes a corner to team2.
+        engine = _quiet_engine()
+        carrier = engine.team1.players[0]
+        engine.ball.possession = carrier
+        engine.ball.x = engine.field_x - 2
+        engine.ball.y = engine.field_y + 30  # above the mouth, top half
+
+        engine.handle_ball_boundaries()
+
+        self.assertIs(engine.restart_team, engine.team2)
+        self.assertIsNone(engine.ball.possession)
+        self.assertEqual((engine.ball.x, engine.ball.y),
+                         (engine.field_x, engine.field_y))
 
     def test_only_entitled_team_can_take_the_restart(self):
         engine = _quiet_engine()
@@ -235,6 +252,21 @@ def _add_player(team, name, x, y):
     p.home_x, p.home_y = x, y
     team.add_player(p)
     return p
+
+
+class DribbleBoundarySteeringTest(unittest.TestCase):
+    def test_carrier_near_sideline_steers_back_into_play(self):
+        # Carrier hugging the bottom sideline, far from shooting range and
+        # with nobody to pass to: the dribble must pull back inside the
+        # field instead of conducting the ball along/over the line.
+        from src.ai import FIELD_MAX_Y
+        ai, carrier, _ = _ai_scenario((400.0, FIELD_MAX_Y - 2))
+        _add_player(ai.opponent_team, "T2P1", 700.0, 300.0)
+
+        ai.execute_attack_behavior(1 / 60)
+
+        self.assertGreater(carrier.vx, 0.0)  # still progressing upfield
+        self.assertLess(carrier.vy, 0.0)  # and cutting away from the line
 
 
 class OffsideTest(unittest.TestCase):

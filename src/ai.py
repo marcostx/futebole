@@ -49,6 +49,11 @@ FIELD_CENTER_Y = 300
 FIELD_MIN_X, FIELD_MAX_X = 50, 750
 FIELD_MIN_Y, FIELD_MAX_Y = 50, 550
 
+# Dribble targets stay at least this far (px) inside the field so a carrier
+# near a boundary cuts back into play instead of conducting the carried ball
+# (glued ~15px ahead of them) over the line, conceding a restart.
+DRIBBLE_MARGIN = 25
+
 # Goal mouth extents, derived from the field bounds exactly like
 # GameEngine.goal_mouth (30%-70% of field height).
 GOAL_MOUTH_TOP = FIELD_MIN_Y + (FIELD_MAX_Y - FIELD_MIN_Y) * 0.3
@@ -459,6 +464,14 @@ class AIController:
                 if (nearest_opponent and
                         ball_carrier.distance_to(nearest_opponent) < PRESSURE_DIST):
                     target_y += -20 if ball_carrier.y < nearest_opponent.y else 20
+                
+                # Keep the dribble target inside the field so a carrier near
+                # a boundary cuts back into play instead of conducting the
+                # ball out (which concedes a restart to the other team).
+                target_x = max(FIELD_MIN_X + DRIBBLE_MARGIN,
+                               min(target_x, FIELD_MAX_X - DRIBBLE_MARGIN))
+                target_y = max(FIELD_MIN_Y + DRIBBLE_MARGIN,
+                               min(target_y, FIELD_MAX_Y - DRIBBLE_MARGIN))
                 
                 ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8)
         

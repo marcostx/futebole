@@ -351,16 +351,27 @@ class GameEngine:
         """Resolve the ball against the field edges.
         
         Scores a goal when the ball's center crosses a goal line within the
-        goal mouth. A loose ball leaving the field restarts play: a throw-in
-        on the sidelines, a corner or goal kick on the goal lines (attributed
-        via the last toucher). A carried ball (glued just past the line by a
-        dribbler hugging the boundary) and a ball with no toucher yet keep
-        the old clamp-and-bounce behavior. Returns "team1", "team2", or None
-        depending on whether a goal was scored.
+        goal mouth. Any other ball leaving the field restarts play: a
+        throw-in on the sidelines, a corner or goal kick on the goal lines,
+        attributed via the last toucher. A carried ball over the line counts
+        too — the dribbler conducted it out, so the restart goes against the
+        carrier's team instead of letting them grind along the boundary.
+        A ball with no toucher yet keeps the old clamp-and-bounce behavior.
+        Returns "team1", "team2", or None depending on whether a goal was
+        scored.
         """
         ball = self.ball
         goal_top, goal_bottom = self.goal_mouth()
-        whistle = ball.possession is None and ball.last_toucher is not None
+        
+        # A carried ball out of play went out off the dribbler.
+        out_of_play = (ball.x < self.field_x
+                       or ball.x > self.field_x + self.field_width
+                       or ball.y < self.field_y
+                       or ball.y > self.field_y + self.field_height)
+        if out_of_play and ball.possession is not None:
+            ball.last_toucher = ball.possession
+        
+        whistle = ball.last_toucher is not None
         scorer = None
         
         if ball.x < self.field_x:
