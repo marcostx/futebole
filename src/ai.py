@@ -559,6 +559,10 @@ class AIController:
                     # from the keeper, with distance-scaled aim noise.
                     target_x, target_y = self._pick_shot_target(ball_carrier)
                     acted = ball_carrier.shoot(self.ball, target_x, target_y)
+                    if acted:
+                        # HUD stat: goal attempts only (keeper clearances
+                        # also use shoot() but are not counted).
+                        self.team.shots += 1
                 elif under_pressure:
                     # Opponent too close: offload to a teammate to escape the
                     # press instead of dribbling into them (and losing the ball

@@ -283,6 +283,11 @@ class GameEngine:
         # Resolve who controls the ball via a fair, order-independent contest
         self.resolve_possession()
         
+        # Accumulate possession time for the HUD stats
+        holder_team = self._team_of(self.ball.possession)
+        if holder_team is not None:
+            holder_team.possession_time += dt
+        
         # Push apart any overlapping players so they don't stack up
         self.separate_players()
         
@@ -426,15 +431,16 @@ class GameEngine:
         # Draw goals
         self.ui.draw_goals(self.field_x, self.field_y, self.field_width, self.field_height)
         
-        # Draw players
+        # Draw players (highlighting the ball carrier)
         for player in self.team1.players + self.team2.players:
-            self.ui.draw_player(player)
+            self.ui.draw_player(player, has_ball=(player is self.ball.possession))
         
         # Draw ball
         self.ui.draw_ball(self.ball)
         
-        # Draw UI elements (score, time)
+        # Draw UI elements (score, time, match stats)
         self.ui.draw_scoreboard(self.team1_score, self.team2_score, self.game_time, self.match_duration)
+        self.ui.draw_hud_stats(self.team1, self.team2)
         
         # Update the display
         pygame.display.flip()
@@ -450,6 +456,9 @@ class GameEngine:
         self.team1_score = 0
         self.team2_score = 0
         self.game_time = 0
+        for team in (self.team1, self.team2):
+            team.shots = 0
+            team.possession_time = 0.0
         self.reset_positions()
         self.last_update_time = pygame.time.get_ticks()
     

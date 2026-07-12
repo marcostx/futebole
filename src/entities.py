@@ -272,6 +272,9 @@ class Team:
         self.players = []
         self.score = 0
         self.formation = "4-4-2"  # Default formation
+        # Match statistics (shown on the HUD).
+        self.shots = 0
+        self.possession_time = 0.0  # seconds in possession
     
     def add_player(self, player):
         """Add a player to the team."""
