@@ -70,6 +70,21 @@ FIELD_MIN_Y, FIELD_MAX_Y = 50, 550
 # (glued ~15px ahead of them) over the line, conceding a restart.
 DRIBBLE_MARGIN = 25
 
+# Defensive block ("two banks"). Out of possession, defenders and
+# midfielders hold two flat lines whose depth (px from our own goal) tracks
+# how far away the ball is: the block retreats as the attack advances and
+# steps up as it recedes.
+DEF_LINE_MIN_DEPTH = 80
+DEF_LINE_MAX_DEPTH = 240
+# Gap (px) between the defender and midfielder lines: the block compresses
+# when the ball is close and stretches when it is far.
+LINE_GAP_MIN = 60
+LINE_GAP_MAX = 120
+# Lateral spacing (px) between teammates within a bank, and how strongly the
+# banks slide sideways with the ball's y (0 = static, 1 = mirror the ball).
+BANK_SPACING = 100
+BANK_SLIDE = 0.6
+
 # Man-marking. When the opposing attack gets this close (px) to our goal
 # center, off-ball defenders mark nearby opponents instead of dropping with
 # the formation (which used to park them on their own goal line).
@@ -254,6 +269,40 @@ class AIController:
         """Whether the player is between the ball and our own goal."""
         return (player.x - self.ball.x) * self.field_side < 0
     
+    def _block_positions(self):
+        """Flat-line targets for the defensive block: player -> (x, y).
+        
+        Defenders form the deeper bank, midfielders a second bank ahead of
+        it. Line depth scales with the ball's distance from our goal (drop
+        deep when the attack advances, step up when it recedes), the gap
+        between the banks compresses as the ball gets close, and both banks
+        slide laterally with the ball while staying inside the field. Slots
+        are assigned by home_y so teammates never swap sides.
+        """
+        own_goal_x, _ = self._own_goal_center()
+        ball_dist = max(0.0, (self.ball.x - own_goal_x) * self.field_side)
+        t = min(1.0, ball_dist / (FIELD_MAX_X - FIELD_MIN_X))
+        depth = DEF_LINE_MIN_DEPTH + (DEF_LINE_MAX_DEPTH - DEF_LINE_MIN_DEPTH) * t
+        gap = LINE_GAP_MIN + (LINE_GAP_MAX - LINE_GAP_MIN) * t
+        
+        slide_y = FIELD_CENTER_Y + (self.ball.y - FIELD_CENTER_Y) * BANK_SLIDE
+        
+        positions = {}
+        for role, line_depth in (("defender", depth),
+                                 ("midfielder", depth + gap)):
+            members = sorted((p for p in self.team.players if p.role == role),
+                             key=lambda p: p.home_y)
+            if not members:
+                continue
+            line_x = own_goal_x + line_depth * self.field_side
+            span = BANK_SPACING * (len(members) - 1)
+            lo = FIELD_MIN_Y + FORMATION_MARGIN
+            hi = FIELD_MAX_Y - FORMATION_MARGIN
+            top_y = max(lo, min(slide_y - span / 2, hi - span))
+            for i, player in enumerate(members):
+                positions[player] = (line_x, top_y + i * BANK_SPACING)
+        return positions
+    
     def execute_defense_behavior(self, dt):
         """Execute defensive behavior for the team."""
         # Active player chases the ball. Gaining possession is resolved
@@ -270,11 +319,14 @@ class AIController:
         threat = (math.hypot(self.ball.x - own_goal_x,
                              self.ball.y - own_goal_y) < MARK_ZONE_DIST)
         assignments = self._mark_assignments() if threat else {}
+        # Outside the threat zone the block defends in two flat banks.
+        block = self._block_positions() if not threat else {}
         
         for player in self.team.players:
             if player is self.active_player:
                 continue
             mark = assignments.get(player)
+            bank_spot = block.get(player)
             if mark is not None:
                 mark_x, mark_y = self._mark_position(mark)
                 player.move_towards(mark_x, mark_y, player.max_speed * 0.85)
@@ -284,8 +336,12 @@ class AIController:
                 # of standing on the goal line like an extra goalkeeper.
                 player.move_towards(self.ball.x, self.ball.y,
                                     player.max_speed * 0.9)
+            elif bank_spot is not None:
+                # Hold the line: flat bank that shifts with the ball.
+                player.move_towards(bank_spot[0], bank_spot[1],
+                                    player.max_speed * 0.75)
             else:
-                # Everyone else holds the formation shape (slid to the ball).
+                # Everyone else (the striker) holds the formation shape.
                 target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.7)
     
