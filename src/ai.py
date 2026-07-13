@@ -99,6 +99,18 @@ MARK_DIST = 22
 # (the attack push / defense drop used to pile them on the goal lines).
 FORMATION_MARGIN = 35
 
+# Rest defense (Tier 5 #2). While the team attacks, its defenders do not
+# join the push: they hold a flat cover line goal-side of the ball so a
+# turnover never becomes an uncontested counter. The line trails the ball
+# by REST_GAP, never collapses onto the keeper (min depth) and never pushes
+# past roughly the halfway line (max depth, px from our own goal).
+REST_GAP = 130
+REST_MIN_DEPTH = 130
+REST_MAX_DEPTH = 330
+# Lateral follow of the ball's y for the cover line (gentler than the
+# defensive block: covering the center matters more than shadowing the ball).
+REST_SLIDE = 0.4
+
 # Goal mouth extents, derived from the field bounds exactly like
 # GameEngine.goal_mouth (30%-70% of field height).
 GOAL_MOUTH_TOP = FIELD_MIN_Y + (FIELD_MAX_Y - FIELD_MIN_Y) * 0.3
@@ -150,10 +162,13 @@ class AIController:
         # centrally by the engine. The goalkeeper never presses or supports:
         # it has its own dedicated behavior below.
         if self.team_state == "attack":
-            # We have the ball: the carrier acts, the nearest teammate supports.
+            # We have the ball: the carrier acts, the nearest teammate
+            # supports. Defenders are exempt from support duty — they hold
+            # the rest-defense cover line instead of joining the attack.
             self.active_player = self.ball.possession
             others = [p for p in self.team.players
-                      if p is not self.active_player and not p.is_goalkeeper]
+                      if p is not self.active_player and not p.is_goalkeeper
+                      and p.role != "defender"]
             self.support_player = (min(others, key=lambda p: p.distance_to(self.ball))
                                    if others else None)
         else:
@@ -358,6 +373,35 @@ class AIController:
             if player != self.active_player:
                 target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y, player.max_speed * 0.6)
+    
+    def _rest_defense_positions(self):
+        """Cover-line targets for defenders while we attack: player -> (x, y).
+        
+        A flat line goal-side of the ball, trailing it by REST_GAP but never
+        dropping onto the keeper nor pushing past the halfway area, sliding
+        gently with the ball's y. A defender who is carrying the ball is
+        exempt (the carrier logic owns them); the other defender still
+        covers. Slots are assigned by home_y so defenders never swap sides.
+        """
+        own_goal_x, _ = self._own_goal_center()
+        ball_depth = max(0.0, (self.ball.x - own_goal_x) * self.field_side)
+        depth = max(REST_MIN_DEPTH, min(ball_depth - REST_GAP, REST_MAX_DEPTH))
+        line_x = own_goal_x + depth * self.field_side
+        
+        slide_y = FIELD_CENTER_Y + (self.ball.y - FIELD_CENTER_Y) * REST_SLIDE
+        defenders = sorted((p for p in self.team.players
+                            if p.role == "defender"
+                            and p is not self.ball.possession),
+                           key=lambda p: p.home_y)
+        if not defenders:
+            return {}
+        
+        span = BANK_SPACING * (len(defenders) - 1)
+        lo = FIELD_MIN_Y + FORMATION_MARGIN
+        hi = FIELD_MAX_Y - FORMATION_MARGIN
+        top_y = max(lo, min(slide_y - span / 2, hi - span))
+        return {p: (line_x, top_y + i * BANK_SPACING)
+                for i, p in enumerate(defenders)}
     
     def _goalkeeper(self):
         """This team's goalkeeper, or None if the roster has none."""
@@ -666,9 +710,16 @@ class AIController:
         
         # The nearest teammate makes a forward run ahead of the carrier: far
         # enough to stretch the defense and offer a driven long-ball option,
-        # while staying onside. The rest hold formation shape.
+        # while staying onside. Defenders hold the rest-defense cover line
+        # goal-side of the ball; the rest hold formation shape.
+        rest_line = self._rest_defense_positions()
         for player in self.team.players:
             if player is ball_carrier:
+                continue
+            rest_spot = rest_line.get(player)
+            if rest_spot is not None:
+                player.move_towards(rest_spot[0], rest_spot[1],
+                                    player.max_speed * 0.75)
                 continue
             if player is self.support_player:
                 run_x = ball_carrier.x + SUPPORT_RUN_DIST * self.field_side
