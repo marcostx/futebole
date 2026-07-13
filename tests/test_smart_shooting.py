@@ -140,7 +140,9 @@ class ShotDecisionTest(unittest.TestCase):
 
         shooter.shoot = mock.Mock(wraps=shooter.shoot)
         shooter.pass_ball = mock.Mock(wraps=shooter.pass_ball)
-        ai.execute_attack_behavior(1 / 60)
+        # Force the (probabilistic) offload decision for determinism.
+        with mock.patch.object(ai_module.random, "random", return_value=0.0):
+            ai.execute_attack_behavior(1 / 60)
 
         shooter.shoot.assert_not_called()
         shooter.pass_ball.assert_called_once()

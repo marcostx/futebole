@@ -14,18 +14,20 @@ ACTION_COOLDOWN = 0.5
 # Floor for the stamina-based power factor so a tired player still kicks the
 # ball with meaningful force instead of it barely moving. Power scales
 # linearly with stamina between this floor (exhausted) and 1.0 (fresh).
-MIN_POWER_FACTOR = 0.5
+# Kept mild: heavy fatigue penalties made matches slow and chanceless.
+MIN_POWER_FACTOR = 0.8
 
 # Gradual stamina effects on movement. A fully exhausted player still moves
 # at this fraction of their pace (never immobile), scaling linearly up to
-# full speed at full stamina.
-MIN_SPEED_FACTOR = 0.6
+# full speed at full stamina. Mild on purpose (see MIN_POWER_FACTOR).
+MIN_SPEED_FACTOR = 0.85
 # Moving faster than this fraction of max_speed is sprinting and drains
 # stamina (scaled by how hard the player is running); below the recovery
-# threshold the player is resting and regains stamina.
+# threshold the player is resting and regains stamina. The slow drain keeps
+# stamina flavor without dragging the match pace down.
 SPRINT_THRESHOLD = 0.75
 RECOVERY_THRESHOLD = 0.5
-SPRINT_DRAIN_PER_SEC = 6.0
+SPRINT_DRAIN_PER_SEC = 2.5
 STAMINA_RECOVERY_PER_SEC = 5.0
 
 # Stamina cost per kick. Small relative to running: fatigue should come
@@ -50,8 +52,10 @@ LOOSE_BALL_TIME = 0.3
 ENTITY_FRICTION_PER_SEC = 0.046
 
 # Maximum ball speed (px/s). Caps kicks/deflections so the ball never travels
-# unrealistically fast (and tunnels through players/walls).
-BALL_MAX_SPEED = 600
+# unrealistically fast (and tunnels through players/walls). Sized so a
+# full-power long shot can still cover ~300px before rolling friction kills
+# it (reach ~= speed / 3, from the rolling decay rate).
+BALL_MAX_SPEED = 900
 
 # Fraction of speed retained when the ball bounces off a wall (restitution).
 BALL_RESTITUTION = 0.8
@@ -62,6 +66,17 @@ BALL_RESTITUTION = 0.8
 # Bounded below so tap passes still zip, and above by the ball's max speed.
 PASS_POWER_MARGIN = 1.1
 PASS_POWER_MIN = 200
+
+# Shots are powered by distance too, so long-range efforts actually reach
+# the goal with pace instead of dying on the way (margin > passes: shots
+# should arrive fast, not land at the keeper's feet).
+SHOT_POWER_MARGIN = 1.25
+MAX_SHOT_POWER = 900
+
+# Acceleration: each movement command blends the velocity toward the
+# desired vector by this fraction instead of snapping to it, giving players
+# momentum (they take a few frames to reach speed and to turn around).
+MOVE_ACCEL_BLEND = 0.25
 
 
 class Entity:
@@ -233,8 +248,23 @@ class Player(Entity):
         return MIN_POWER_FACTOR + (1.0 - MIN_POWER_FACTOR) * self.stamina_factor()
     
     def move_towards(self, target_x, target_y, speed):
-        """Move toward a target at the requested speed, scaled by fatigue."""
-        super().move_towards(target_x, target_y, speed * self.speed_factor())
+        """Accelerate toward a target at the requested speed, scaled by fatigue.
+        
+        Movement has momentum: each command blends the velocity a fraction
+        of the way toward the desired vector (the AI re-issues commands
+        every frame, so repeated calls converge on full speed) instead of
+        snapping, so starts, stops and turns take a few frames.
+        """
+        dx = target_x - self.x
+        dy = target_y - self.y
+        distance = math.hypot(dx, dy)
+        if distance == 0:
+            return
+        effective = speed * self.speed_factor()
+        desired_vx = (dx / distance) * effective
+        desired_vy = (dy / distance) * effective
+        self.vx += (desired_vx - self.vx) * MOVE_ACCEL_BLEND
+        self.vy += (desired_vy - self.vy) * MOVE_ACCEL_BLEND
     
     def carry_ball(self, ball):
         """Keep the ball glued just ahead of this player while dribbling.
@@ -253,18 +283,29 @@ class Player(Entity):
         ball.vy = self.vy
     
     def shoot(self, ball, target_x, target_y):
-        """Shoot the ball towards a target position."""
+        """Shoot the ball towards a target position.
+        
+        Power scales with the distance to the target (bounded by
+        MAX_SHOT_POWER) so long-range efforts arrive at the goal with pace
+        instead of dying short; close shots keep the base shoot_power zip.
+        """
         # Must have the ball and be off cooldown
         if ball.possession == self and self.can_act():
             direction_x = target_x - ball.x
             direction_y = target_y - ball.y
+            
+            shot_dist = math.hypot(direction_x, direction_y)
+            decay_rate = -math.log(BALL_FRICTION_PER_SEC)
+            power = max(self.shoot_power,
+                        min(shot_dist * decay_rate * SHOT_POWER_MARGIN,
+                            MAX_SHOT_POWER))
             
             # Kick power degrades gradually with fatigue (floored, never zero)
             power_factor = self.power_factor()
             self.current_stamina = max(0, self.current_stamina - SHOT_STAMINA_COST)
             
             # Kick the ball
-            ball.kick(direction_x, direction_y, self.shoot_power * power_factor)
+            ball.kick(direction_x, direction_y, power * power_factor)
             self.action_cooldown = ACTION_COOLDOWN
             return True
         return False

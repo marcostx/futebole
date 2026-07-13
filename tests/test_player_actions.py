@@ -99,12 +99,24 @@ class PowerFloorTest(unittest.TestCase):
         self.assertGreaterEqual(speed, expected_min - 1e-6)
         self.assertGreater(speed, 50.0)  # clearly moving, not a dribble
 
-    def test_full_stamina_shot_is_full_power(self):
+    def test_full_stamina_long_shot_is_capped_at_max_power(self):
+        from src.entities import MAX_SHOT_POWER
         player = Player("P", 100.0, 100.0, (255, 0, 0))
         player.current_stamina = 100
         ball = _possessed_ball(player)
 
+        # A very distant target needs more power than the cap allows.
         player.shoot(ball, 700.0, 100.0)
+        speed = math.hypot(ball.vx, ball.vy)
+        self.assertAlmostEqual(speed, MAX_SHOT_POWER, delta=1.0)
+
+    def test_full_stamina_close_shot_keeps_base_power(self):
+        player = Player("P", 100.0, 100.0, (255, 0, 0))
+        player.current_stamina = 100
+        ball = _possessed_ball(player)
+
+        # A close target: distance-scaled power floors at shoot_power.
+        player.shoot(ball, 150.0, 100.0)
         speed = math.hypot(ball.vx, ball.vy)
         self.assertAlmostEqual(speed, player.shoot_power, delta=1.0)
 

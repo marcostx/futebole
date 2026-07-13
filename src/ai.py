@@ -25,6 +25,25 @@ PRESSURE_DIST = 30
 # Distance (px) to the opponent goal within which the carrier will shoot.
 SHOOT_RANGE = 150
 
+# Long-range shooting: between SHOOT_RANGE and this distance the carrier
+# occasionally lets fly (per-frame chance below) to surprise the keeper —
+# the shot is distance-powered so it arrives with pace.
+LONG_SHOT_RANGE = 320
+LONG_SHOT_PROB = 0.02
+
+# A pressured carrier is no longer forced to offload: each frame it passes
+# with this probability, otherwise it keeps the ball and tries to beat the
+# presser (individual play). Expected hold time ~1/(prob*fps) seconds.
+PRESSURE_PASS_PROB = 0.06
+
+# Phase tempo: how hard off-ball players run in each game phase. Attacking
+# players push up quickly to create chances; defending players track back
+# even faster to reorganize before the attack arrives.
+ATTACK_TEMPO = 0.85
+SUPPORT_TEMPO = 1.0
+DEFENSE_TEMPO = 0.95
+CONVERGE_TEMPO = 1.0
+
 # Maximum distance (px) for a normal short pass. Teammates within this range
 # are always candidates (subject to lane/offside checks).
 MAX_PASS_DIST = 130
@@ -132,9 +151,11 @@ SHOT_CORNER_MARGIN = 15
 # favor of a pass or of dribbling toward the center to open the angle.
 MIN_SHOT_ANGLE = 0.35
 # Aim noise (px on the target y): base spread at point blank, growing by the
-# scale term at maximum shooting range, so long shots are less precise.
+# scale term at normal shooting range and up to twice that from long range,
+# so long-range surprises are genuinely harder to place.
 SHOT_NOISE_BASE = 5
 SHOT_NOISE_SCALE = 15
+SHOT_NOISE_MAX_FACTOR = 2.2
 # Shots aim this far (px) beyond the goal line so the kick always has a
 # forward component: a target exactly on the line degenerates into a
 # vertical (unscoreable) kick when the ball sits on the line itself.
@@ -344,17 +365,19 @@ class AIController:
             bank_spot = block.get(player)
             if mark is not None:
                 mark_x, mark_y = self._mark_position(mark)
-                player.move_towards(mark_x, mark_y, player.max_speed * 0.85)
+                player.move_towards(mark_x, mark_y,
+                                    player.max_speed * DEFENSE_TEMPO)
             elif threat and not player.is_goalkeeper and self._goal_side_of_ball(player):
                 # Free defender loitering behind the ball with nobody to
                 # mark: converge on the carrier to help win the ball instead
                 # of standing on the goal line like an extra goalkeeper.
                 player.move_towards(self.ball.x, self.ball.y,
-                                    player.max_speed * 0.9)
+                                    player.max_speed * CONVERGE_TEMPO)
             elif bank_spot is not None:
-                # Hold the line: flat bank that shifts with the ball.
+                # Hold the line: flat bank that shifts with the ball. Track
+                # back fast so the block is set before the attack arrives.
                 player.move_towards(bank_spot[0], bank_spot[1],
-                                    player.max_speed * 0.75)
+                                    player.max_speed * DEFENSE_TEMPO)
             else:
                 # Everyone else (the striker) holds the formation shape.
                 target_x, target_y = self.formation_position(player)
@@ -506,7 +529,8 @@ class AIController:
             target_y = min(corners, key=lambda cy: abs(cy - shooter.y))
         
         dist = math.hypot(goal_x - shooter.x, target_y - shooter.y)
-        noise = SHOT_NOISE_BASE + SHOT_NOISE_SCALE * min(1.0, dist / SHOOT_RANGE)
+        noise = SHOT_NOISE_BASE + SHOT_NOISE_SCALE * min(SHOT_NOISE_MAX_FACTOR,
+                                                         dist / SHOOT_RANGE)
         # Aim past the goal line so the shot always drives into the net.
         target_x = goal_x + SHOT_DEPTH * self.field_side
         return target_x, target_y + random.uniform(-noise, noise)
@@ -651,6 +675,7 @@ class AIController:
             # whether a kick actually fired so we can fall back to movement and
             # avoid the carrier standing still while on cooldown.
             in_shot_range = distance_to_goal < SHOOT_RANGE
+            in_long_range = distance_to_goal < LONG_SHOT_RANGE
             good_angle = self._shot_angle(ball_carrier) >= MIN_SHOT_ANGLE
             acted = False
             if ball_carrier.can_act():
@@ -663,15 +688,25 @@ class AIController:
                         # HUD stat: goal attempts only (keeper clearances
                         # also use shoot() but are not counted).
                         self.team.shots += 1
+                elif (in_long_range and good_angle
+                        and random.random() < LONG_SHOT_PROB):
+                    # Occasional long-range strike to surprise the keeper:
+                    # distance-powered so it arrives at the goal with pace.
+                    target_x, target_y = self._pick_shot_target(ball_carrier)
+                    acted = ball_carrier.shoot(self.ball, target_x, target_y)
+                    if acted:
+                        self.team.shots += 1
                 elif under_pressure:
-                    # Opponent too close: offload to a teammate to escape the
-                    # press instead of dribbling into them (and losing the ball
-                    # in a tug-of-war loop). A backward outlet is allowed when
-                    # nobody is open in front.
-                    target = self._best_pass_target(ball_carrier,
-                                                    allow_backward=True)
-                    if target is not None:
-                        acted = ball_carrier.pass_ball(self.ball, target)
+                    # Opponent too close: usually offload to a teammate to
+                    # escape the press (backward outlet allowed when nobody
+                    # is open in front) — but not deterministically, so the
+                    # carrier sometimes backs itself to beat the presser
+                    # instead (individual play).
+                    if random.random() < PRESSURE_PASS_PROB:
+                        target = self._best_pass_target(ball_carrier,
+                                                        allow_backward=True)
+                        if target is not None:
+                            acted = ball_carrier.pass_ball(self.ball, target)
                 else:
                     # Build-up: pass only when it clearly improves the team's
                     # position — the receiver must be meaningfully more open
@@ -734,7 +769,10 @@ class AIController:
                          min(run_x, FIELD_MAX_X - FORMATION_MARGIN))
                 sy = max(FIELD_MIN_Y + FORMATION_MARGIN,
                          min(ball_carrier.y, FIELD_MAX_Y - FORMATION_MARGIN))
-                player.move_towards(sx, sy, player.max_speed * 0.9)
+                player.move_towards(sx, sy, player.max_speed * SUPPORT_TEMPO)
             else:
+                # Attacking off-ball players push up with pace to create
+                # chances instead of jogging into shape.
                 target_x, target_y = self.formation_position(player)
-                player.move_towards(target_x, target_y, player.max_speed * 0.7)
+                player.move_towards(target_x, target_y,
+                                    player.max_speed * ATTACK_TEMPO)
