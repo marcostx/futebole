@@ -12,8 +12,26 @@ import math
 ACTION_COOLDOWN = 0.5
 
 # Floor for the stamina-based power factor so a tired player still kicks the
-# ball with meaningful force instead of it barely moving.
+# ball with meaningful force instead of it barely moving. Power scales
+# linearly with stamina between this floor (exhausted) and 1.0 (fresh).
 MIN_POWER_FACTOR = 0.5
+
+# Gradual stamina effects on movement. A fully exhausted player still moves
+# at this fraction of their pace (never immobile), scaling linearly up to
+# full speed at full stamina.
+MIN_SPEED_FACTOR = 0.6
+# Moving faster than this fraction of max_speed is sprinting and drains
+# stamina (scaled by how hard the player is running); below the recovery
+# threshold the player is resting and regains stamina.
+SPRINT_THRESHOLD = 0.75
+RECOVERY_THRESHOLD = 0.5
+SPRINT_DRAIN_PER_SEC = 6.0
+STAMINA_RECOVERY_PER_SEC = 5.0
+
+# Stamina cost per kick. Small relative to running: fatigue should come
+# from sprinting over a match, not from a handful of passes.
+SHOT_STAMINA_COST = 10
+PASS_STAMINA_COST = 5
 
 # Fraction of the ball's velocity retained after one second of rolling.
 # Applied in a frame-rate independent way so a kicked ball travels a realistic
@@ -179,14 +197,38 @@ class Player(Entity):
         if self.action_cooldown > 0:
             self.action_cooldown = max(0.0, self.action_cooldown - dt)
         
-        # Recover stamina
-        if self.current_stamina < self.stamina:
-            self.current_stamina += 5 * dt  # Recover 5 stamina per second
-            self.current_stamina = min(self.current_stamina, self.stamina)
+        # Stamina: sprinting drains it (scaled by effort), resting recovers
+        # it, jogging in between is sustainable. Self-stabilizing: a tired
+        # player is slower (see speed_factor), which drops them back under
+        # the sprint threshold instead of draining to zero.
+        speed_ratio = speed / self.max_speed
+        if speed_ratio > SPRINT_THRESHOLD:
+            self.current_stamina = max(
+                0.0, self.current_stamina - SPRINT_DRAIN_PER_SEC * speed_ratio * dt)
+        elif speed_ratio < RECOVERY_THRESHOLD:
+            self.current_stamina = min(
+                self.stamina,
+                self.current_stamina + STAMINA_RECOVERY_PER_SEC * dt)
     
     def can_act(self):
         """Whether the player is off cooldown and may shoot or pass."""
         return self.action_cooldown <= 0
+    
+    def stamina_factor(self):
+        """0..1 fitness scale: 1.0 fresh, dropping linearly as stamina drains."""
+        return max(0.0, min(1.0, self.current_stamina / self.stamina))
+    
+    def speed_factor(self):
+        """Gradual speed multiplier: full pace fresh, MIN_SPEED_FACTOR exhausted."""
+        return MIN_SPEED_FACTOR + (1.0 - MIN_SPEED_FACTOR) * self.stamina_factor()
+    
+    def power_factor(self):
+        """Gradual kick-power multiplier: 1.0 fresh, MIN_POWER_FACTOR exhausted."""
+        return MIN_POWER_FACTOR + (1.0 - MIN_POWER_FACTOR) * self.stamina_factor()
+    
+    def move_towards(self, target_x, target_y, speed):
+        """Move toward a target at the requested speed, scaled by fatigue."""
+        super().move_towards(target_x, target_y, speed * self.speed_factor())
     
     def carry_ball(self, ball):
         """Keep the ball glued just ahead of this player while dribbling.
@@ -211,9 +253,9 @@ class Player(Entity):
             direction_x = target_x - ball.x
             direction_y = target_y - ball.y
             
-            # Use stamina for shooting, but never let power collapse to zero
-            power_factor = max(MIN_POWER_FACTOR, min(1.0, self.current_stamina / 30))
-            self.current_stamina = max(0, self.current_stamina - 30)
+            # Kick power degrades gradually with fatigue (floored, never zero)
+            power_factor = self.power_factor()
+            self.current_stamina = max(0, self.current_stamina - SHOT_STAMINA_COST)
             
             # Kick the ball
             ball.kick(direction_x, direction_y, self.shoot_power * power_factor)
@@ -247,9 +289,9 @@ class Player(Entity):
                         min(pass_dist * decay_rate * PASS_POWER_MARGIN,
                             BALL_MAX_SPEED))
             
-            # Use stamina for passing, but never let power collapse to zero
-            power_factor = max(MIN_POWER_FACTOR, min(1.0, self.current_stamina / 20))
-            self.current_stamina = max(0, self.current_stamina - 20)
+            # Kick power degrades gradually with fatigue (floored, never zero)
+            power_factor = self.power_factor()
+            self.current_stamina = max(0, self.current_stamina - PASS_STAMINA_COST)
             
             # Kick along the carrier->receiver direction. Using the ball's
             # own position instead could flip the direction for a receiver
