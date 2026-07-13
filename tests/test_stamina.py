@@ -63,6 +63,21 @@ class StaminaDrainRecoveryTest(unittest.TestCase):
         p.update(1 / 60)  # one frame, so friction keeps speed in the band
         self.assertAlmostEqual(p.current_stamina, before)
 
+    def test_sprint_drain_uses_pre_friction_effort(self):
+        # The drain must be based on the velocity that actually moved the
+        # player this frame (set by the AI), not the post-friction leftover,
+        # so the same sprint costs the same at any frame rate.
+        def drain_after_one_second(fps):
+            p = _player(100)
+            for _ in range(fps):
+                p.vx, p.vy = p.max_speed, 0.0  # AI re-issues movement
+                p.update(1.0 / fps)
+            return 100 - p.current_stamina
+
+        drain_60, drain_10 = drain_after_one_second(60), drain_after_one_second(10)
+        self.assertGreater(drain_10, 0.0)
+        self.assertAlmostEqual(drain_60, drain_10, delta=0.01)
+
     def test_resting_recovers_stamina(self):
         p = _player(40)
         p.vx = p.vy = 0.0

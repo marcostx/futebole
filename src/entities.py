@@ -185,13 +185,19 @@ class Player(Entity):
     
     def update(self, dt):
         """Update player position and attributes."""
+        # This frame's effort is the velocity that actually moves the player
+        # below; capture it before Entity.update applies friction, otherwise
+        # sprint drain is undercounted (and frame-rate dependent, since
+        # larger dt decays the measured speed further).
+        effort_vx, effort_vy = self.vx, self.vy
+        speed = math.hypot(effort_vx, effort_vy)
+        
         super().update(dt)
         
         # Update facing direction from current movement
-        speed = math.hypot(self.vx, self.vy)
         if speed > 1:
-            self.facing_x = self.vx / speed
-            self.facing_y = self.vy / speed
+            self.facing_x = effort_vx / speed
+            self.facing_y = effort_vy / speed
         
         # Tick down the action cooldown
         if self.action_cooldown > 0:
