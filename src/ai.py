@@ -26,15 +26,24 @@ PRESSURE_DIST = 30
 SHOOT_RANGE = 150
 
 # Long-range shooting: between SHOOT_RANGE and this distance the carrier
-# occasionally lets fly (per-frame chance below) to surprise the keeper —
-# the shot is distance-powered so it arrives with pace.
+# occasionally lets fly (chance below, tuned per 60Hz frame) to surprise
+# the keeper — the shot is distance-powered so it arrives with pace.
 LONG_SHOT_RANGE = 320
 LONG_SHOT_PROB = 0.02
 
 # A pressured carrier is no longer forced to offload: each frame it passes
-# with this probability, otherwise it keeps the ball and tries to beat the
-# presser (individual play). Expected hold time ~1/(prob*fps) seconds.
+# with this probability (tuned per 60Hz frame), otherwise it keeps the ball
+# and tries to beat the presser (individual play).
 PRESSURE_PASS_PROB = 0.06
+
+# Reference frame rate that per-frame probabilities are tuned against;
+# rolls are rescaled by the real dt so behavior is frame-rate independent.
+PROB_REFERENCE_FPS = 60.0
+
+
+def per_frame_prob(base_prob, dt):
+    """Rescale a per-60Hz-frame probability to an arbitrary timestep."""
+    return 1.0 - (1.0 - base_prob) ** (dt * PROB_REFERENCE_FPS)
 
 # Phase tempo: how hard off-ball players run in each game phase. Attacking
 # players push up quickly to create chances; defending players track back
@@ -346,7 +355,7 @@ class AIController:
         # so it is a fair, order-independent contest.
         if self.active_player:
             self.active_player.move_towards(self.ball.x, self.ball.y, 
-                                           self.active_player.max_speed)
+                                           self.active_player.max_speed, dt)
         
         # Attack near our goal: off-ball defenders man-mark opponents on the
         # goal side instead of dropping with the formation until the field
@@ -366,22 +375,22 @@ class AIController:
             if mark is not None:
                 mark_x, mark_y = self._mark_position(mark)
                 player.move_towards(mark_x, mark_y,
-                                    player.max_speed * DEFENSE_TEMPO)
+                                    player.max_speed * DEFENSE_TEMPO, dt)
             elif threat and not player.is_goalkeeper and self._goal_side_of_ball(player):
                 # Free defender loitering behind the ball with nobody to
                 # mark: converge on the carrier to help win the ball instead
                 # of standing on the goal line like an extra goalkeeper.
                 player.move_towards(self.ball.x, self.ball.y,
-                                    player.max_speed * CONVERGE_TEMPO)
+                                    player.max_speed * CONVERGE_TEMPO, dt)
             elif bank_spot is not None:
                 # Hold the line: flat bank that shifts with the ball. Track
                 # back fast so the block is set before the attack arrives.
                 player.move_towards(bank_spot[0], bank_spot[1],
-                                    player.max_speed * DEFENSE_TEMPO)
+                                    player.max_speed * DEFENSE_TEMPO, dt)
             else:
                 # Everyone else (the striker) holds the formation shape.
                 target_x, target_y = self.formation_position(player)
-                player.move_towards(target_x, target_y, player.max_speed * 0.7)
+                player.move_towards(target_x, target_y, player.max_speed * 0.7, dt)
     
     def execute_possession_behavior(self, dt):
         """Chase a loose ball we're closest to: one presser, others hold shape."""
@@ -389,13 +398,13 @@ class AIController:
         # centrally by the game engine (see GameEngine.resolve_possession).
         if self.active_player:
             self.active_player.move_towards(self.ball.x, self.ball.y, 
-                                           self.active_player.max_speed)
+                                           self.active_player.max_speed, dt)
         
         # Other players hold their formation shape (slid toward the ball)
         for player in self.team.players:
             if player != self.active_player:
                 target_x, target_y = self.formation_position(player)
-                player.move_towards(target_x, target_y, player.max_speed * 0.6)
+                player.move_towards(target_x, target_y, player.max_speed * 0.6, dt)
     
     def _rest_defense_positions(self):
         """Cover-line targets for defenders while we attack: player -> (x, y).
@@ -454,14 +463,14 @@ class AIController:
         ball_is_ours = self.ball.possession in self.team.players
         threat_dist = math.hypot(self.ball.x - own_goal_x, self.ball.y - own_goal_y)
         if not ball_is_ours and threat_dist < GK_RUSH_DIST:
-            keeper.move_towards(self.ball.x, self.ball.y, keeper.max_speed)
+            keeper.move_towards(self.ball.x, self.ball.y, keeper.max_speed, dt)
             return
         
         # Otherwise hold the goal line: stay at the home x (just off the line)
         # and track the ball's height, clamped inside the goal mouth.
         target_y = max(GOAL_MOUTH_TOP + GK_MOUTH_MARGIN,
                        min(self.ball.y, GOAL_MOUTH_BOTTOM - GK_MOUTH_MARGIN))
-        keeper.move_towards(keeper.home_x, target_y, keeper.max_speed * 0.9)
+        keeper.move_towards(keeper.home_x, target_y, keeper.max_speed * 0.9, dt)
     
     def _goalkeeper_distribute(self, keeper):
         """With the ball: pass to an open teammate, else boot it upfield."""
@@ -689,7 +698,7 @@ class AIController:
                         # also use shoot() but are not counted).
                         self.team.shots += 1
                 elif (in_long_range and good_angle
-                        and random.random() < LONG_SHOT_PROB):
+                        and random.random() < per_frame_prob(LONG_SHOT_PROB, dt)):
                     # Occasional long-range strike to surprise the keeper:
                     # distance-powered so it arrives at the goal with pace.
                     target_x, target_y = self._pick_shot_target(ball_carrier)
@@ -702,7 +711,7 @@ class AIController:
                     # is open in front) — but not deterministically, so the
                     # carrier sometimes backs itself to beat the presser
                     # instead (individual play).
-                    if random.random() < PRESSURE_PASS_PROB:
+                    if random.random() < per_frame_prob(PRESSURE_PASS_PROB, dt):
                         target = self._best_pass_target(ball_carrier,
                                                         allow_backward=True)
                         if target is not None:
@@ -741,7 +750,7 @@ class AIController:
                 target_y = max(FIELD_MIN_Y + DRIBBLE_MARGIN,
                                min(target_y, FIELD_MAX_Y - DRIBBLE_MARGIN))
                 
-                ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8)
+                ball_carrier.move_towards(target_x, target_y, ball_carrier.max_speed * 0.8, dt)
         
         # The nearest teammate makes a forward run ahead of the carrier: far
         # enough to stretch the defense and offer a driven long-ball option,
@@ -754,7 +763,7 @@ class AIController:
             rest_spot = rest_line.get(player)
             if rest_spot is not None:
                 player.move_towards(rest_spot[0], rest_spot[1],
-                                    player.max_speed * 0.75)
+                                    player.max_speed * 0.75, dt)
                 continue
             if player is self.support_player:
                 run_x = ball_carrier.x + SUPPORT_RUN_DIST * self.field_side
@@ -769,10 +778,10 @@ class AIController:
                          min(run_x, FIELD_MAX_X - FORMATION_MARGIN))
                 sy = max(FIELD_MIN_Y + FORMATION_MARGIN,
                          min(ball_carrier.y, FIELD_MAX_Y - FORMATION_MARGIN))
-                player.move_towards(sx, sy, player.max_speed * SUPPORT_TEMPO)
+                player.move_towards(sx, sy, player.max_speed * SUPPORT_TEMPO, dt)
             else:
                 # Attacking off-ball players push up with pace to create
                 # chances instead of jogging into shape.
                 target_x, target_y = self.formation_position(player)
                 player.move_towards(target_x, target_y,
-                                    player.max_speed * ATTACK_TEMPO)
+                                    player.max_speed * ATTACK_TEMPO, dt)

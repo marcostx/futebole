@@ -74,9 +74,12 @@ SHOT_POWER_MARGIN = 1.25
 MAX_SHOT_POWER = 900
 
 # Acceleration: each movement command blends the velocity toward the
-# desired vector by this fraction instead of snapping to it, giving players
-# momentum (they take a few frames to reach speed and to turn around).
+# desired vector instead of snapping to it, giving players momentum (they
+# take a few frames to reach speed and to turn around). The constant is the
+# blend fraction per 60Hz frame; commands scale it by their real dt so the
+# effective acceleration is frame-rate independent.
 MOVE_ACCEL_BLEND = 0.25
+ACCEL_REFERENCE_FPS = 60.0
 
 
 class Entity:
@@ -247,13 +250,14 @@ class Player(Entity):
         """Gradual kick-power multiplier: 1.0 fresh, MIN_POWER_FACTOR exhausted."""
         return MIN_POWER_FACTOR + (1.0 - MIN_POWER_FACTOR) * self.stamina_factor()
     
-    def move_towards(self, target_x, target_y, speed):
+    def move_towards(self, target_x, target_y, speed, dt=1.0 / 60):
         """Accelerate toward a target at the requested speed, scaled by fatigue.
         
         Movement has momentum: each command blends the velocity a fraction
         of the way toward the desired vector (the AI re-issues commands
         every frame, so repeated calls converge on full speed) instead of
-        snapping, so starts, stops and turns take a few frames.
+        snapping, so starts, stops and turns take a few frames. The blend
+        is scaled by `dt` so acceleration is frame-rate independent.
         """
         dx = target_x - self.x
         dy = target_y - self.y
@@ -263,8 +267,9 @@ class Player(Entity):
         effective = speed * self.speed_factor()
         desired_vx = (dx / distance) * effective
         desired_vy = (dy / distance) * effective
-        self.vx += (desired_vx - self.vx) * MOVE_ACCEL_BLEND
-        self.vy += (desired_vy - self.vy) * MOVE_ACCEL_BLEND
+        alpha = 1.0 - (1.0 - MOVE_ACCEL_BLEND) ** (dt * ACCEL_REFERENCE_FPS)
+        self.vx += (desired_vx - self.vx) * alpha
+        self.vy += (desired_vy - self.vy) * alpha
     
     def carry_ball(self, ball):
         """Keep the ball glued just ahead of this player while dribbling.

@@ -54,6 +54,32 @@ class AccelerationTest(unittest.TestCase):
         self.assertGreater(p.vx, p.vy)
         self.assertGreater(p.vy, 0.0)  # but the turn has begun
 
+    def test_acceleration_is_frame_rate_independent(self):
+        # The same 0.2s of commanded sprinting must reach the same speed
+        # whether it is issued as 12 commands at 60Hz or 2 at 10Hz.
+        fast, slow = _player(), _player()
+        for _ in range(12):
+            fast.move_towards(fast.x + 100, fast.y, fast.max_speed, dt=1 / 60)
+        for _ in range(2):
+            slow.move_towards(slow.x + 100, slow.y, slow.max_speed, dt=1 / 10)
+
+        self.assertAlmostEqual(math.hypot(fast.vx, fast.vy),
+                               math.hypot(slow.vx, slow.vy), delta=0.5)
+
+
+class FrameRateProbabilityTest(unittest.TestCase):
+    def test_per_frame_prob_is_identity_at_the_reference_rate(self):
+        self.assertAlmostEqual(ai_module.per_frame_prob(0.06, 1 / 60), 0.06)
+
+    def test_cumulative_probability_matches_across_frame_rates(self):
+        # Probability of at least one trigger over a full second must be
+        # the same no matter how the second is sliced.
+        base = 0.02
+        per_second = {fps: 1 - (1 - ai_module.per_frame_prob(base, 1 / fps)) ** fps
+                      for fps in (10, 60, 240)}
+        self.assertAlmostEqual(per_second[10], per_second[60], places=9)
+        self.assertAlmostEqual(per_second[240], per_second[60], places=9)
+
 
 class PhaseTempoTest(unittest.TestCase):
     def test_defenders_track_back_faster_than_attackers_push_up(self):
