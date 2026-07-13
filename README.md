@@ -7,7 +7,7 @@ A simple 2D soccer simulation game built with Python and Pygame where two AI-con
 
 ## Gameplay Preview
 
-![Gameplay Animation](assets/match.gif)
+![Gameplay Animation](assets/match_improved_short.gif)
 
 
 ## Features

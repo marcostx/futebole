@@ -8,13 +8,15 @@ to a ball ping-pong loop.
 
 import os
 import unittest
+from unittest import mock
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame
 
-from src.ai import AIController, PRESSURE_DIST, SHOOT_RANGE
+from src import ai as ai_module
+from src.ai import AIController, PRESSURE_DIST, PRESSURE_PASS_PROB, SHOOT_RANGE
 from src.entities import Ball, Player, Team
 
 
@@ -55,11 +57,27 @@ class PressuredOffloadTest(unittest.TestCase):
         opponent.x, opponent.y = carrier.x + 10, carrier.y  # within PRESSURE_DIST
         self.assertLess(carrier.distance_to(opponent), PRESSURE_DIST)
 
-        ai.execute_attack_behavior(1 / 60)
+        # Force the (probabilistic) offload decision for determinism.
+        with mock.patch.object(ai_module.random, "random", return_value=0.0):
+            ai.execute_attack_behavior(1 / 60)
 
         # The ball was released (kicked): possession cleared and in flight.
         self.assertIsNone(ball.possession)
         self.assertGreater(ball.loose_timer, 0.0)
+
+    def test_pressured_carrier_can_back_itself_and_keep_the_ball(self):
+        # The offload is no longer deterministic: when the roll says "play
+        # on", the carrier keeps the ball and dribbles (individual play).
+        ai, carrier, ball, opponent = _scenario(carrier_x=300.0)
+        opponent.x, opponent.y = carrier.x + 10, carrier.y
+        self.assertLess(carrier.distance_to(opponent), PRESSURE_DIST)
+
+        with mock.patch.object(ai_module.random, "random",
+                               return_value=PRESSURE_PASS_PROB + 0.01):
+            ai.execute_attack_behavior(1 / 60)
+
+        self.assertIs(ball.possession, carrier)
+        self.assertGreater(abs(carrier.vx) + abs(carrier.vy), 0.0)
 
     def test_carrier_dribbles_when_not_pressured(self):
         ai, carrier, ball, opponent = _scenario(carrier_x=300.0)

@@ -8,12 +8,14 @@ unpressured carrier only passes when the receiver is meaningfully more open).
 
 import os
 import unittest
+from unittest import mock
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
 
 import pygame  # noqa: F401
 
+from src import ai as ai_module
 from src.ai import AIController, LANE_BLOCK_RADIUS, OPEN_ADVANTAGE, PRESSURE_DIST
 from src.entities import Ball, Player, Team
 
@@ -149,7 +151,9 @@ class BackPassTest(unittest.TestCase):
                               carrier.x + 10, carrier.y)
         self.assertLess(carrier.distance_to(presser), PRESSURE_DIST)
 
-        ai.execute_attack_behavior(1 / 60)
+        # Force the (probabilistic) offload decision for determinism.
+        with mock.patch.object(ai_module.random, "random", return_value=0.0):
+            ai.execute_attack_behavior(1 / 60)
 
         # Offloaded backwards (-x for Team 1) instead of dribbling into
         # the presser with no forward option.
