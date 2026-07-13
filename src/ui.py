@@ -76,6 +76,16 @@ class UI:
         self.screen.blit(name_text, (player.x - name_text.get_width() // 2, 
                                      player.y - 25))
         
+        # Stamina bar under the player: green when fresh, red when gassed.
+        fitness = player.stamina_factor()
+        bar_w, bar_h = 20, 3
+        bar_x = int(player.x - bar_w / 2)
+        bar_y = int(player.y + player.radius + 4)
+        fill_color = (int(220 * (1 - fitness)), int(200 * fitness), 40)
+        pygame.draw.rect(self.screen, (60, 60, 60), (bar_x, bar_y, bar_w, bar_h))
+        pygame.draw.rect(self.screen, fill_color,
+                         (bar_x, bar_y, int(bar_w * fitness), bar_h))
+        
         # Draw direction indicator (shows where player is moving)
         if player.vx != 0 or player.vy != 0:
             speed = math.sqrt(player.vx ** 2 + player.vy ** 2)
