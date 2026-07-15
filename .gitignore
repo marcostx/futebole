@@ -181,3 +181,7 @@ cython_debug/
 
 # scratch output from monitor_match.py
 match_frames/
+
+# paper
+paper/
+experiments/
