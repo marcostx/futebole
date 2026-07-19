@@ -1,0 +1,8 @@
+[book]
+authors = ["Marcos Teixeira"]
+language = "en"
+src = "reports"
+title = "Le Futebole — Development Reports"
+
+[build]
+build-dir = "book"
