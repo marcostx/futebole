@@ -143,6 +143,7 @@ def pressed_actions(events, bindings=DEFAULT_BINDINGS):
         if event.type != pygame.KEYDOWN:
             continue
         triggered.update(index.get(event.key, ()))
+    triggered.discard(Action.SPRINT)
     return triggered
 
 
