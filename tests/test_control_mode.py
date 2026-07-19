@@ -92,6 +92,9 @@ class ControlModeRoutingTest(unittest.TestCase):
 
     def test_human_team_without_controller_falls_back_to_ai(self):
         engine = GameEngine(human_team="team1")
+        # A human side normally auto-builds a controller; clearing it exercises
+        # the defensive fallback in _update_controllers (run the AI instead).
+        engine.human_controller = None
         engine.team1_ai = mock.Mock()
         engine.team2_ai = mock.Mock()
 
