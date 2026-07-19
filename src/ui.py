@@ -48,13 +48,19 @@ class UI:
         pygame.draw.rect(self.screen, (255, 255, 255), 
                          (x + width, y + height * 0.3, 10, height * 0.4), 2)
     
-    # Keeper marking and carrier highlight colors
+    # Keeper marking, carrier, and selection highlight colors
     GK_RING_COLOR = (255, 215, 0)  # gold ring around goalkeepers
     CARRIER_RING_COLOR = (255, 255, 255)  # white halo on the ball carrier
+    SELECT_MARKER_COLOR = (0, 255, 255)  # cyan chevron over the human's player
     
-    def draw_player(self, player, has_ball=False):
-        """Draw a player: team circle, keeper marking, possession halo."""
+    def draw_player(self, player, has_ball=False, selected=False):
+        """Draw a player: selection marker, team circle, keeper ring, halo."""
         center = (int(player.x), int(player.y))
+        
+        # Selection marker: a chevron above the human-controlled player, kept
+        # distinct from the possession halo (white) and the keeper ring (gold).
+        if selected:
+            self.draw_selection_marker(player)
         
         # Possession halo: a white ring slightly larger than the player so
         # it's obvious at a glance who is on the ball.
@@ -95,6 +101,19 @@ class UI:
                 pygame.draw.line(self.screen, (255, 255, 255), 
                                 (player.x, player.y), 
                                 (player.x + norm_vx * 15, player.y + norm_vy * 15), 2)
+    
+    def draw_selection_marker(self, player):
+        """Draw a downward cyan chevron above the human-controlled player.
+        
+        Sits above the name label so it never clashes with the possession
+        halo (white) or the goalkeeper ring (gold).
+        """
+        x = int(player.x)
+        base_y = int(player.y - player.radius - 30)
+        tip_y = int(player.y - player.radius - 18)
+        points = [(x - 7, base_y), (x + 7, base_y), (x, tip_y)]
+        pygame.draw.polygon(self.screen, self.SELECT_MARKER_COLOR, points)
+        pygame.draw.polygon(self.screen, (0, 0, 0), points, 1)  # outline
     
     def draw_ball(self, ball):
         """Draw the ball on the screen."""

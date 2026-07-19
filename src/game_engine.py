@@ -580,9 +580,13 @@ class GameEngine:
         # Draw goals
         self.ui.draw_goals(self.field_x, self.field_y, self.field_width, self.field_height)
         
-        # Draw players (highlighting the ball carrier)
+        # Draw players, highlighting the ball carrier and the human's selection.
+        selected = (self.human_controller.selected_player
+                    if self.human_controller is not None else None)
         for player in self.team1.players + self.team2.players:
-            self.ui.draw_player(player, has_ball=(player is self.ball.possession))
+            self.ui.draw_player(player,
+                                has_ball=(player is self.ball.possession),
+                                selected=(player is selected))
         
         # Draw ball
         self.ui.draw_ball(self.ball)
