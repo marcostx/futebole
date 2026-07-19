@@ -13,7 +13,9 @@ from src import input as game_input
 def main():
     """Initialize and run the soccer simulation game."""
     pygame.init()
-    game = GameEngine()
+    # Team 1 is human-controlled; Team 2 stays on AI. (Headless tools construct
+    # GameEngine() directly and remain all-AI.)
+    game = GameEngine(human_team="team1")
     clock = pygame.time.Clock()
 
     while True:

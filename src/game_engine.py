@@ -8,6 +8,7 @@ import pygame
 import random
 from src.entities import Ball, Player, Team, BALL_RESTITUTION
 from src.ai import AIController
+from src.human_controller import HumanController
 from src.ui import UI
 
 # Per-frame probability that a contesting opponent wins the ball from the
@@ -79,7 +80,10 @@ class GameEngine:
         # Control mode: which side (if any) a human drives, and the controller
         # that reads input for it (attached later; see set_human_controller).
         self.human_team = self._resolve_team(human_team)
-        self.human_controller = None
+        # Build the controller for the human side (if any): it steers one
+        # selected player and delegates the rest of that team to its AI. With
+        # no human side, human_controller stays None and both teams run on AI.
+        self.human_controller = self._make_human_controller()
         # Latest resolved human input frame (set each loop by the input layer;
         # consumed by the human controller). None until the first read.
         self.player_input = None
@@ -101,6 +105,14 @@ class GameEngine:
         raise ValueError(
             "human_team must be None, 'team1', 'team2', or a team instance; "
             f"got {spec!r}")
+    
+    def _make_human_controller(self):
+        """Construct the human controller for the designated side, or None."""
+        if self.human_team is None:
+            return None
+        team_ai = (self.team1_ai if self.human_team is self.team1
+                   else self.team2_ai)
+        return HumanController(self.human_team, team_ai, self)
     
     def is_human_controlled(self, team):
         """Whether `team` is driven by the human player rather than its AI."""
