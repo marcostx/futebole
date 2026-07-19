@@ -4,15 +4,16 @@ Drives the human-controlled team (Tier 5). The human directly steers a single
 *selected* player from the input layer's movement vector; every other teammate
 is positioned by the team's existing AIController.
 
-To give the human exclusive control of the selected player, that player is
-temporarily pulled out of the team roster while the AI runs, so the AI never
-selects, moves, or acts with it. It is restored immediately afterwards (before
-the engine integrates positions) and then steered from the current input frame.
+The selected player is excluded from the AI via ``AIController.controlled_player``:
+the AI never selects, moves, or acts with it, yet it stays in the team roster so
+possession/team-state logic remains correct (teammates support the attack when
+the human carries the ball).
 
-While the human team is defending (not in possession), the controlled player is
+Selection: while the human team is in possession the controlled player is the
+ball carrier (so the human always plays the on-ball player, and control hands
+off to a pass receiver once they collect it); while defending it is
 auto-selected as the outfield player closest to the ball, and the switch action
-cycles outward to the next-closest player. On-ball actions (pass/shoot/sprint)
-and attacking selection land in later Tier 5 tasks.
+cycles outward to the next-closest.
 """
 
 from src.input import Action
@@ -51,14 +52,13 @@ class HumanController:
         self.switch_offset = 0
 
     def update(self, dt):
-        """Pick the controlled player, position teammates via the AI, then steer.
-
-        The selected player is hidden from the AI for the duration of the AI
-        update so the AI never moves or acts with it; the human owns it.
-        """
+        """Pick the controlled player, run the AI (excluding it), then steer it."""
         self._update_selection()
         selected = self.selected_player
-        self._run_ai_without(selected, dt)
+        # The AI positions the rest of the team but never touches the human's
+        # player; it stays in the roster so the team's state stays correct.
+        self.ai.controlled_player = selected
+        self.ai.update(dt)
         if selected is not None:
             self._steer(selected, dt)
 
@@ -88,16 +88,17 @@ class HumanController:
         return frame is not None and Action.SWITCH_PLAYER in frame.actions
 
     def _update_selection(self):
-        """Auto-select the closest defender; cycle outward on a switch press.
+        """Follow the ball on attack; auto-select/cycle defenders on defense.
 
-        While defending, the controlled player is the outfield player at
-        ``switch_offset`` in the distance-ordered list (offset 0 = closest, the
-        auto-selection). A switch press advances the offset by one, wrapping
-        around. Regaining possession resets the cycle so the next defensive
-        phase starts at the closest player again. (Attacking selection is a
-        later Tier 5 task; while in possession the current pick is kept.)
+        While in possession the controlled player is the ball carrier, so the
+        human always plays the on-ball player (control naturally hands off to a
+        pass receiver once they collect it). While defending, the controlled
+        player is the outfield player at ``switch_offset`` in the
+        distance-ordered list (offset 0 = closest); a switch press advances the
+        offset, wrapping around. Regaining possession resets the cycle.
         """
         if not self._is_defending():
+            self.selected_player = self.engine.ball.possession
             self.switch_offset = 0
             return
         if self._switch_pressed():
@@ -106,20 +107,7 @@ class HumanController:
         if candidates:
             self.selected_player = candidates[self.switch_offset % len(candidates)]
 
-    # --- AI delegation + steering ---------------------------------------
-
-    def _run_ai_without(self, player, dt):
-        """Run the team AI with `player` temporarily removed from the roster."""
-        players = self.team.players
-        if player is not None and player in players:
-            index = players.index(player)
-            players.remove(player)
-            try:
-                self.ai.update(dt)
-            finally:
-                players.insert(index, player)  # restore original order
-        else:
-            self.ai.update(dt)
+    # --- Steering --------------------------------------------------------
 
     def _input_move(self):
         """This frame's (dx, dy) movement vector from the input layer."""
