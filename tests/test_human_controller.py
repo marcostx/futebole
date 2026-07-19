@@ -14,7 +14,7 @@ import pygame
 
 from src.game_engine import GameEngine
 from src.human_controller import HumanController
-from src.input import InputFrame
+from src.input import Action, InputFrame
 
 DT = 1.0 / 60
 
@@ -116,6 +116,92 @@ class HumanControllerExclusionTest(unittest.TestCase):
 
         self.assertIs(engine.ball.possession, sp)       # ball not kicked away
         self.assertEqual(engine.team1.shots, 0)         # no AI shot recorded
+
+
+class DefensiveSelectionTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pygame.init()
+
+    def _defending_engine(self):
+        """Human engine defending a free ball, with outfielders spread along x
+        so distance-to-ball ordering is unambiguous (distances 50..450)."""
+        engine = GameEngine(human_team="team1")
+        engine.ball.possession = None                # free ball -> defending
+        engine.ball.x, engine.ball.y = 50, 300
+        outfield = [p for p in engine.team1.players if not p.is_goalkeeper]
+        for i, player in enumerate(outfield):
+            player.x, player.y = 100 + i * 100, 300
+        return engine, engine.human_controller, outfield
+
+    def test_auto_selects_closest_when_defending(self):
+        engine, hc, outfield = self._defending_engine()
+        engine.set_player_input(InputFrame())
+        hc._update_selection()
+        self.assertIs(hc.selected_player, outfield[0])
+
+    def test_switch_selects_second_closest(self):
+        engine, hc, outfield = self._defending_engine()
+        engine.set_player_input(InputFrame())
+        hc._update_selection()                       # closest
+        engine.set_player_input(
+            InputFrame(actions=frozenset({Action.SWITCH_PLAYER})))
+        hc._update_selection()                       # second closest
+        self.assertIs(hc.selected_player, outfield[1])
+
+    def test_repeated_switches_cycle_in_distance_order(self):
+        engine, hc, outfield = self._defending_engine()
+        engine.set_player_input(InputFrame())
+        hc._update_selection()
+        seen = [hc.selected_player]
+        for _ in range(len(outfield)):               # one extra: test wrap-around
+            engine.set_player_input(
+                InputFrame(actions=frozenset({Action.SWITCH_PLAYER})))
+            hc._update_selection()
+            seen.append(hc.selected_player)
+        self.assertEqual(seen, outfield + [outfield[0]])
+
+    def test_switch_is_debounced_to_one_advance_per_press(self):
+        engine, hc, outfield = self._defending_engine()
+        engine.set_player_input(
+            InputFrame(actions=frozenset({Action.SWITCH_PLAYER})))
+        hc._update_selection()                       # one press -> second closest
+        self.assertIs(hc.selected_player, outfield[1])
+        # Key still physically held but no new KEYDOWN => no further advances.
+        for _ in range(3):
+            engine.set_player_input(InputFrame())
+            hc._update_selection()
+        self.assertIs(hc.selected_player, outfield[1])
+
+    def test_goalkeeper_is_never_selected(self):
+        engine, hc, outfield = self._defending_engine()
+        keeper = next(p for p in engine.team1.players if p.is_goalkeeper)
+        engine.ball.x, engine.ball.y = keeper.x, keeper.y   # ball on the keeper
+        engine.set_player_input(InputFrame())
+        hc._update_selection()
+        self.assertFalse(hc.selected_player.is_goalkeeper)
+        self.assertIn(hc.selected_player, outfield)
+
+    def test_regaining_possession_resets_the_cycle(self):
+        engine, hc, outfield = self._defending_engine()
+        engine.set_player_input(
+            InputFrame(actions=frozenset({Action.SWITCH_PLAYER})))
+        hc._update_selection()                       # offset 1
+        self.assertEqual(hc.switch_offset, 1)
+        picked = hc.selected_player
+        engine.ball.possession = outfield[0]         # we now hold the ball
+        engine.set_player_input(InputFrame())
+        hc._update_selection()
+        self.assertEqual(hc.switch_offset, 0)        # cycle reset
+        self.assertIs(hc.selected_player, picked)    # kept while attacking
+
+    def test_update_steers_the_auto_selected_defender(self):
+        engine, hc, outfield = self._defending_engine()
+        engine.set_player_input(InputFrame(move=(1.0, 0.0)))
+        hc.update(DT)
+        sp = hc.selected_player
+        self.assertIs(sp, outfield[0])               # closest was auto-selected
+        self.assertGreater(sp.vx, 0.0)               # and steered right
 
 
 if __name__ == "__main__":
