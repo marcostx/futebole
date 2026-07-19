@@ -181,6 +181,10 @@ class AIController:
         self.active_player = None
         self.support_player = None
         self.team_state = "defense"  # defense, possession, attack
+        # A player controlled externally (by a HumanController). The AI never
+        # selects, moves, or acts with it, but it stays in team.players so
+        # possession/team-state logic remains correct.
+        self.controlled_player = None
     
     def update(self, dt):
         """Update AI decisions for the team."""
@@ -198,12 +202,14 @@ class AIController:
             self.active_player = self.ball.possession
             others = [p for p in self.team.players
                       if p is not self.active_player and not p.is_goalkeeper
-                      and p.role != "defender"]
+                      and p.role != "defender" and p is not self.controlled_player]
             self.support_player = (min(others, key=lambda p: p.distance_to(self.ball))
                                    if others else None)
         else:
-            # We don't have the ball: our nearest outfield player presses it.
-            self.active_player = self._nearest_outfield_to_ball(self.team)
+            # We don't have the ball: our nearest outfield player (never the
+            # human-controlled one) presses it.
+            self.active_player = self._nearest_outfield_to_ball(
+                self.team, exclude=self.controlled_player)
             self.support_player = None
         
         # Execute behaviors based on team state
@@ -217,7 +223,7 @@ class AIController:
         # The goalkeeper's dedicated behavior overrides whatever formation
         # movement the state behaviors assigned to it.
         keeper = self._goalkeeper()
-        if keeper is not None:
+        if keeper is not None and keeper is not self.controlled_player:
             self._update_goalkeeper(keeper, dt)
     
     def formation_position(self, player):
@@ -243,9 +249,16 @@ class AIController:
                        min(player.home_y + shift_y, FIELD_MAX_Y - FORMATION_MARGIN))
         return target_x, target_y
     
-    def _nearest_outfield_to_ball(self, team):
-        """The team's outfield player nearest the ball (keeper as a last resort)."""
-        candidates = [p for p in team.players if not p.is_goalkeeper] or team.players
+    def _nearest_outfield_to_ball(self, team, exclude=None):
+        """The team's outfield player nearest the ball (keeper as a last resort).
+        
+        `exclude` (e.g. a human-controlled player) is never returned, so the AI
+        presses with a different teammate.
+        """
+        candidates = [p for p in team.players
+                      if not p.is_goalkeeper and p is not exclude]
+        if not candidates:
+            candidates = [p for p in team.players if p is not exclude] or team.players
         return (min(candidates, key=lambda p: p.distance_to(self.ball))
                 if candidates else None)
     
@@ -368,7 +381,7 @@ class AIController:
         block = self._block_positions() if not threat else {}
         
         for player in self.team.players:
-            if player is self.active_player:
+            if player is self.active_player or player is self.controlled_player:
                 continue
             mark = assignments.get(player)
             bank_spot = block.get(player)
@@ -402,9 +415,10 @@ class AIController:
         
         # Other players hold their formation shape (slid toward the ball)
         for player in self.team.players:
-            if player != self.active_player:
-                target_x, target_y = self.formation_position(player)
-                player.move_towards(target_x, target_y, player.max_speed * 0.6, dt)
+            if player is self.active_player or player is self.controlled_player:
+                continue
+            target_x, target_y = self.formation_position(player)
+            player.move_towards(target_x, target_y, player.max_speed * 0.6, dt)
     
     def _rest_defense_positions(self):
         """Cover-line targets for defenders while we attack: player -> (x, y).
@@ -666,7 +680,8 @@ class AIController:
         
         # A keeper with the ball distributes via its dedicated behavior
         # (_goalkeeper_distribute), not the outfield carrier logic.
-        if ball_carrier in self.team.players and not ball_carrier.is_goalkeeper:
+        if (ball_carrier in self.team.players and not ball_carrier.is_goalkeeper
+                and ball_carrier is not self.controlled_player):
             # We have the ball, decide what to do
             opponent_goal_x = FIELD_MAX_X if self.field_side == 1 else FIELD_MIN_X
             opponent_goal_y = FIELD_CENTER_Y
@@ -758,7 +773,7 @@ class AIController:
         # goal-side of the ball; the rest hold formation shape.
         rest_line = self._rest_defense_positions()
         for player in self.team.players:
-            if player is ball_carrier:
+            if player is ball_carrier or player is self.controlled_player:
                 continue
             rest_spot = rest_line.get(player)
             if rest_spot is not None:

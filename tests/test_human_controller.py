@@ -88,15 +88,21 @@ class HumanControllerExclusionTest(unittest.TestCase):
     def setUpClass(cls):
         pygame.init()
 
-    def test_ai_runs_for_the_rest_of_the_team(self):
+    def test_ai_presser_excludes_the_controlled_player(self):
         engine = GameEngine(human_team="team1")
         hc = engine.human_controller
+        engine.ball.possession = None                # loose ball -> defending
+        engine.ball.x, engine.ball.y = 60, 300
+        outfield = [p for p in engine.team1.players if not p.is_goalkeeper]
+        for i, player in enumerate(outfield):
+            player.x, player.y = 100 + i * 100, 300
         engine.set_player_input(InputFrame())
         hc.update(DT)
-        # The wrapped AI executed and chose an active player that is not the
-        # human's selected player.
+        # The human controls the closest player; the AI's active player is
+        # someone else (the exclusion keeps the AI off the human's player).
+        self.assertIs(hc.selected_player, outfield[0])
         self.assertIsNotNone(engine.team1_ai.active_player)
-        self.assertIsNot(engine.team1_ai.active_player, hc.selected_player)
+        self.assertIsNot(engine.team1_ai.active_player, outfield[0])
 
     def test_selected_player_is_excluded_from_ai_actions(self):
         engine = GameEngine(human_team="team1")
@@ -182,18 +188,17 @@ class DefensiveSelectionTest(unittest.TestCase):
         self.assertFalse(hc.selected_player.is_goalkeeper)
         self.assertIn(hc.selected_player, outfield)
 
-    def test_regaining_possession_resets_the_cycle(self):
+    def test_regaining_possession_snaps_to_carrier_and_resets_cycle(self):
         engine, hc, outfield = self._defending_engine()
         engine.set_player_input(
             InputFrame(actions=frozenset({Action.SWITCH_PLAYER})))
-        hc._update_selection()                       # offset 1
+        hc._update_selection()                       # switched to 2nd-closest
         self.assertEqual(hc.switch_offset, 1)
-        picked = hc.selected_player
-        engine.ball.possession = outfield[0]         # we now hold the ball
+        engine.ball.possession = outfield[2]         # a teammate wins the ball
         engine.set_player_input(InputFrame())
         hc._update_selection()
         self.assertEqual(hc.switch_offset, 0)        # cycle reset
-        self.assertIs(hc.selected_player, picked)    # kept while attacking
+        self.assertIs(hc.selected_player, outfield[2])  # control snaps to carrier
 
     def test_update_steers_the_auto_selected_defender(self):
         engine, hc, outfield = self._defending_engine()
@@ -202,6 +207,54 @@ class DefensiveSelectionTest(unittest.TestCase):
         sp = hc.selected_player
         self.assertIs(sp, outfield[0])               # closest was auto-selected
         self.assertGreater(sp.vx, 0.0)               # and steered right
+
+
+class AttackSelectionTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pygame.init()
+
+    def test_controls_the_ball_carrier_while_in_possession(self):
+        engine = GameEngine(human_team="team1")
+        hc = engine.human_controller
+        carrier = [p for p in engine.team1.players if not p.is_goalkeeper][2]
+        engine.ball.possession = carrier
+        hc._update_selection()
+        self.assertIs(hc.selected_player, carrier)
+        self.assertEqual(hc.switch_offset, 0)
+
+    def test_teammates_stay_in_attack_when_human_carries_the_ball(self):
+        # Regression for the PR #30/#31 finding: the old roster-removal trick
+        # made the team read its own possession as the opponent's and defend.
+        engine = GameEngine(human_team="team1")
+        hc = engine.human_controller
+        sp = hc.selected_player
+        engine.ball.possession = sp
+        engine.ball.loose_timer = 0.0
+        engine.set_player_input(InputFrame())
+        hc.update(DT)
+        self.assertEqual(engine.team1_ai.team_state, "attack")
+
+    def test_ai_leaves_the_controlled_carrier_but_moves_teammates(self):
+        engine = GameEngine(human_team="team1")
+        hc = engine.human_controller
+        sp = hc.selected_player
+        engine.ball.possession = sp
+        engine.ball.loose_timer = 0.0
+        for player in engine.team1.players:
+            player.vx = player.vy = 0.0
+        engine.set_player_input(InputFrame())        # no human movement
+        hc.update(DT)
+        self.assertEqual((sp.vx, sp.vy), (0.0, 0.0))  # AI left the carrier alone
+        teammates = [p for p in engine.team1.players if p is not sp]
+        self.assertTrue(any(p.vx or p.vy for p in teammates))  # AI moved others
+
+    def test_controlled_player_flag_is_set_on_the_ai(self):
+        engine = GameEngine(human_team="team1")
+        hc = engine.human_controller
+        engine.set_player_input(InputFrame())
+        hc.update(DT)
+        self.assertIs(engine.team1_ai.controlled_player, hc.selected_player)
 
 
 if __name__ == "__main__":
