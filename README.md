@@ -16,7 +16,7 @@ A simple 2D soccer simulation game built with Python and Pygame where two AI-con
 - Basic AI decision-making: moving towards the ball, passing, shooting
 - Simple 2D graphical interface using Pygame
 - Scoreboard and match timer
-- Autonomous gameplay without human intervention
+- Human vs AI: Team 1 is keyboard-controlled, Team 2 is AI (see Controls)
 
 ## Project Structure
 ```futebole/
@@ -60,12 +60,32 @@ pip install -r requirements.txt
 
 ## Running the Game
 To start the simulation:
+```
 python main.py
-Game Controls
+```
 
-ESC: Exit the game
-SPACE: Pause/Resume the game
-R: Reset the match
+## Controls
+
+Team 1 (red) is human-controlled; Team 2 (blue) is AI. You control one player
+at a time, marked by a cyan chevron above their head. A compact legend of these
+controls is also shown on-screen while you play.
+
+**Gameplay**
+
+- Move: `W` `A` `S` `D` or the arrow keys
+- Sprint: hold `Shift` (drains stamina faster)
+- Pass: `J` (toward a teammate in the direction you are facing/moving)
+- Shoot: `K` (aims for the corner away from the keeper)
+- Switch player while defending: `Tab` (cycles to the next-closest player)
+
+While your team has the ball you control the ball carrier; while defending the
+game auto-selects the player nearest the ball (press `Tab` to switch).
+
+**System**
+
+- `Space`: Pause / resume
+- `R`: Reset the match
+- `Esc`: Quit
 
 ## AI Improvements
 
