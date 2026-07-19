@@ -80,6 +80,9 @@ class GameEngine:
         # that reads input for it (attached later; see set_human_controller).
         self.human_team = self._resolve_team(human_team)
         self.human_controller = None
+        # Latest resolved human input frame (set each loop by the input layer;
+        # consumed by the human controller). None until the first read.
+        self.player_input = None
     
     def _resolve_team(self, spec):
         """Resolve a human-team spec to a Team instance (or None).
@@ -111,6 +114,15 @@ class GameEngine:
         the input / human-controller tasks land never freezes that side.
         """
         self.human_controller = controller
+    
+    def set_player_input(self, frame):
+        """Store the latest human input frame (see src/input.py).
+        
+        Called once per loop by the entry point; the human controller reads it
+        when driving the selected player. Storing it on the engine keeps
+        controllers reading shared state, symmetric with the AI controllers.
+        """
+        self.player_input = frame
     
     def _update_controllers(self, dt):
         """Advance each team's controller for this frame.
