@@ -14,6 +14,7 @@ class UI:
         self.height = height
         self.font = pygame.font.SysFont("Arial", 24)
         self.small_font = pygame.font.SysFont("Arial", 18)
+        self.tiny_font = pygame.font.SysFont("Arial", 14)
     
     def draw_field(self, x, y, width, height):
         """Draw the soccer field."""
@@ -175,3 +176,25 @@ class UI:
             True, (255, 255, 255))
         self.screen.blit(shots_text,
                          (self.width - shots_text.get_width() - 10, bar_y + 8))
+    
+    # Human control hints, shown on-screen only while a human is playing.
+    CONTROLS_LINES = (
+        "Move WASD/Arrows   Sprint Shift   Pass J   Shoot K   Switch Tab",
+        "Pause Space   Reset R   Quit Esc",
+    )
+    
+    def draw_controls_legend(self):
+        """Draw a compact hint of the human controls above the bottom HUD bar."""
+        surfaces = [self.tiny_font.render(line, True, (235, 235, 235))
+                    for line in self.CONTROLS_LINES]
+        pad = 6
+        line_h = self.tiny_font.get_height()
+        box_w = max(s.get_width() for s in surfaces) + pad * 2
+        box_h = line_h * len(surfaces) + pad * 2
+        x = 6
+        y = self.height - 34 - box_h - 4  # just above the bottom HUD bar
+        panel = pygame.Surface((box_w, box_h), pygame.SRCALPHA)
+        panel.fill((0, 0, 0, 150))  # semi-transparent so play stays visible
+        self.screen.blit(panel, (x, y))
+        for i, surface in enumerate(surfaces):
+            self.screen.blit(surface, (x + pad, y + pad + i * line_h))

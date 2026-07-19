@@ -595,6 +595,10 @@ class GameEngine:
         self.ui.draw_scoreboard(self.team1_score, self.team2_score, self.game_time, self.match_duration)
         self.ui.draw_hud_stats(self.team1, self.team2)
         
+        # Show the control legend only when a human is playing.
+        if self.human_controller is not None:
+            self.ui.draw_controls_legend()
+        
         # Update the display
         pygame.display.flip()
     
