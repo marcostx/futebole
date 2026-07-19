@@ -257,5 +257,80 @@ class AttackSelectionTest(unittest.TestCase):
         self.assertIs(engine.team1_ai.controlled_player, hc.selected_player)
 
 
+class OnBallActionsTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        pygame.init()
+
+    def _carrier_engine(self):
+        """Human engine with the selected player on the ball in midfield,
+        off cooldown, with room to pass or shoot."""
+        engine = GameEngine(human_team="team1")
+        hc = engine.human_controller
+        sp = hc.selected_player
+        sp.x, sp.y = 400, 300
+        sp.action_cooldown = 0.0
+        engine.ball.possession = sp
+        engine.ball.loose_timer = 0.0
+        return engine, hc, sp
+
+    def test_shoot_releases_the_ball_and_counts_a_shot(self):
+        engine, hc, sp = self._carrier_engine()
+        engine.team1.shots = 0
+        engine.set_player_input(InputFrame(actions=frozenset({Action.SHOOT})))
+        hc.update(DT)
+        self.assertIsNone(engine.ball.possession)        # ball was kicked
+        self.assertGreater(engine.ball.loose_timer, 0.0)  # in flight
+        self.assertEqual(engine.team1.shots, 1)
+        self.assertGreater(engine.ball.vx, 0.0)          # toward the right goal
+
+    def test_pass_goes_to_a_teammate_in_the_aim_direction(self):
+        engine, hc, sp = self._carrier_engine()
+        outfield = [p for p in engine.team1.players
+                    if p is not sp and not p.is_goalkeeper]
+        mate = outfield[0]
+        mate.x, mate.y = 500, 260                         # up-and-right of carrier
+        for other in outfield[1:]:
+            other.x, other.y = 200, 520                   # far, behind the carrier
+        engine.set_player_input(
+            InputFrame(move=(1.0, 0.0), actions=frozenset({Action.PASS})))
+        hc.update(DT)
+        self.assertIsNone(engine.ball.possession)         # ball released
+        self.assertGreater(engine.ball.vx, 0.0)           # toward the aimed mate
+
+    def test_actions_require_holding_the_ball(self):
+        engine, hc, sp = self._carrier_engine()
+        engine.ball.possession = None                     # not on the ball
+        engine.team1.shots = 0
+        engine.set_player_input(InputFrame(actions=frozenset({Action.SHOOT})))
+        hc.update(DT)
+        self.assertEqual(engine.team1.shots, 0)
+
+    def test_actions_are_gated_by_the_cooldown(self):
+        engine, hc, sp = self._carrier_engine()
+        sp.action_cooldown = 0.5                          # just kicked
+        engine.team1.shots = 0
+        engine.set_player_input(InputFrame(actions=frozenset({Action.SHOOT})))
+        hc.update(DT)
+        self.assertEqual(engine.team1.shots, 0)           # cooldown blocks it
+        self.assertIs(engine.ball.possession, sp)         # still on the ball
+
+    def test_sprint_increases_movement_speed(self):
+        engine, hc, sp = self._carrier_engine()
+        sp.vx = sp.vy = 0.0
+        engine.set_player_input(InputFrame(move=(1.0, 0.0)))
+        hc.update(DT)
+        jog_vx = sp.vx
+
+        engine2, hc2, sp2 = self._carrier_engine()
+        sp2.vx = sp2.vy = 0.0
+        engine2.set_player_input(
+            InputFrame(move=(1.0, 0.0), held=frozenset({Action.SPRINT})))
+        hc2.update(DT)
+        sprint_vx = sp2.vx
+
+        self.assertGreater(sprint_vx, jog_vx)
+
+
 if __name__ == "__main__":
     unittest.main()
