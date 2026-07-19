@@ -33,8 +33,17 @@ KICKOFF_OPPONENT_MARGIN = 60
 
 
 class GameEngine:
-    def __init__(self):
-        """Initialize the game engine with all necessary components."""
+    def __init__(self, human_team=None):
+        """Initialize the game engine with all necessary components.
+
+        `human_team` selects which side a human player drives instead of its
+        AIController: ``None`` (the default) runs both teams on AI, keeping the
+        headless tools (`monitor_match.py`, the experiment harness) all-AI;
+        ``"team1"``/``"team2"`` (or a Team instance of this engine) mark that
+        side as human-controlled. The controller that actually reads input is
+        attached later via :meth:`set_human_controller`; until then a
+        human-designated team falls back to its AI so the sim never freezes.
+        """
         # Screen dimensions
         self.WIDTH = 800
         self.HEIGHT = 600
@@ -66,6 +75,57 @@ class GameEngine:
         # AI controllers
         self.team1_ai = AIController(self.team1, self.team2, self.ball)
         self.team2_ai = AIController(self.team2, self.team1, self.ball)
+        
+        # Control mode: which side (if any) a human drives, and the controller
+        # that reads input for it (attached later; see set_human_controller).
+        self.human_team = self._resolve_team(human_team)
+        self.human_controller = None
+    
+    def _resolve_team(self, spec):
+        """Resolve a human-team spec to a Team instance (or None).
+        
+        Accepts ``None`` (no human side), the strings ``"team1"``/``"team2"``,
+        or a Team instance already belonging to this engine. Any other value is
+        rejected so a misconfigured control mode fails fast instead of silently
+        falling back to all-AI.
+        """
+        if spec is None:
+            return None
+        if spec is self.team1 or spec == "team1":
+            return self.team1
+        if spec is self.team2 or spec == "team2":
+            return self.team2
+        raise ValueError(
+            "human_team must be None, 'team1', 'team2', or a team instance; "
+            f"got {spec!r}")
+    
+    def is_human_controlled(self, team):
+        """Whether `team` is driven by the human player rather than its AI."""
+        return self.human_team is not None and team is self.human_team
+    
+    def set_human_controller(self, controller):
+        """Attach the controller that drives the human team.
+        
+        Until one is attached, a human-designated team keeps using its
+        AIController (see _update_controllers), so enabling human mode before
+        the input / human-controller tasks land never freezes that side.
+        """
+        self.human_controller = controller
+    
+    def _update_controllers(self, dt):
+        """Advance each team's controller for this frame.
+        
+        The human team is driven by the attached human controller when one is
+        present; every other team (and a human-designated team with no
+        controller yet) uses its AIController. Team order is preserved, so the
+        default all-AI configuration behaves exactly as before.
+        """
+        for team, ai in ((self.team1, self.team1_ai),
+                         (self.team2, self.team2_ai)):
+            if self.is_human_controlled(team) and self.human_controller is not None:
+                self.human_controller.update(dt)
+            else:
+                ai.update(dt)
     
     def init_game_objects(self):
         """Initialize all game objects: ball, players, teams."""
@@ -331,9 +391,9 @@ class GameEngine:
         if self.kickoff_pending:
             self._perform_kickoff_pass()
         
-        # Update AI decisions
-        self.team1_ai.update(dt)
-        self.team2_ai.update(dt)
+        # Advance controllers: the human team via its controller when one is
+        # attached, otherwise AI. Default config is all-AI (unchanged behavior).
+        self._update_controllers(dt)
         
         # Update ball
         self.ball.update(dt)
