@@ -179,7 +179,7 @@ class DefensiveSelectionTest(unittest.TestCase):
             hc._update_selection()
         self.assertIs(hc.selected_player, outfield[1])
 
-    def test_goalkeeper_is_never_selected(self):
+    def test_goalkeeper_is_excluded_while_defending(self):
         engine, hc, outfield = self._defending_engine()
         keeper = next(p for p in engine.team1.players if p.is_goalkeeper)
         engine.ball.x, engine.ball.y = keeper.x, keeper.y   # ball on the keeper
@@ -187,6 +187,14 @@ class DefensiveSelectionTest(unittest.TestCase):
         hc._update_selection()
         self.assertFalse(hc.selected_player.is_goalkeeper)
         self.assertIn(hc.selected_player, outfield)
+
+    def test_goalkeeper_is_selected_while_holding_the_ball(self):
+        engine, hc, _ = self._defending_engine()
+        keeper = next(p for p in engine.team1.players if p.is_goalkeeper)
+        engine.ball.possession = keeper
+        engine.set_player_input(InputFrame())
+        hc._update_selection()
+        self.assertIs(hc.selected_player, keeper)
 
     def test_regaining_possession_snaps_to_carrier_and_resets_cycle(self):
         engine, hc, outfield = self._defending_engine()

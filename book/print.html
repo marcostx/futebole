@@ -1,0 +1,2027 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Le Futebole — Technical Documentation</title>
+        <meta name="robots" content="noindex">
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-e96d0476.css">
+        <link rel="stylesheet" href="css/chrome-d279d366.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
+
+        <!-- Custom theme stylesheets -->
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root and default themes to javascript -->
+        <script>
+            const path_to_root = "";
+            const default_light_theme = "light";
+            const default_dark_theme = "navy";
+            window.path_to_searchindex_js = "searchindex-9b1416f1.js";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="toc-e41736fb.js"></script>
+    </head>
+    <body>
+    <div id="mdbook-help-container">
+        <div id="mdbook-help-popup">
+            <h2 class="mdbook-help-title">Keyboard shortcuts</h2>
+            <div>
+                <p>Press <kbd>←</kbd> or <kbd>→</kbd> to navigate between chapters</p>
+                <p>Press <kbd>S</kbd> or <kbd>/</kbd> to search in the book</p>
+                <p>Press <kbd>?</kbd> to show this help</p>
+                <p>Press <kbd>Esc</kbd> to hide this help</p>
+            </div>
+        </div>
+    </div>
+    <div id="mdbook-body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                let theme = localStorage.getItem('mdbook-theme');
+                let sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            const default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? default_dark_theme : default_light_theme;
+            let theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            let sidebar = null;
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+                sidebar_toggle.checked = false;
+            }
+            if (sidebar === 'visible') {
+                sidebar_toggle.checked = true;
+            } else {
+                html.classList.remove('sidebar-visible');
+            }
+        </script>
+
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
+            </noscript>
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="mdbook-page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
+                        </label>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
+                        </button>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
+                        </ul>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">Le Futebole — Technical Documentation</h1>
+
+                    <div class="right-buttons">
+                        <a href="print.html" title="Print this book" aria-label="Print this book">
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
+                        </a>
+                        <a href="https://github.com/marcostx/futebole" title="Git repository" aria-label="Git repository">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"/></svg></span>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
+                        <div class="search-wrapper">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
+                            <div class="spinner-wrapper">
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="mdbook-content" class="content">
+                    <main>
+                        <h1 id="le-futebole-documentation"><a class="header" href="#le-futebole-documentation">Le Futebole Documentation</a></h1>
+<p>Le Futebole is a compact 2D soccer simulation with timestep-aware
+physics, explicit possession and restart rules, role-aware team tactics, and
+mixed human/AI control.</p>
+<p>The documentation has two complementary parts:</p>
+<ul>
+<li>The <a href="paper/README.html">technical paper</a> explains how the current simulation
+works, from the update loop and physics through tactical AI, human controls,
+and the seeded evaluation protocol.</li>
+<li>The development reports below preserve point-in-time observations of the
+game. They show how the simulation evolved and why particular mechanics were
+introduced.</li>
+</ul>
+<h2 id="development-reports"><a class="header" href="#development-reports">Development reports</a></h2>
+<p>Each report captures the state of the game at a point in time: how a match
+actually plays out, measured metrics, observed problems, and a prioritized
+list of improvements.</p>
+<p>Use these reports to:</p>
+<ul>
+<li>Compare behavior between versions (did possession balance out? are goals being scored?).</li>
+<li>Verify that fixes had the intended effect.</li>
+<li>Decide what to work on next.</li>
+</ul>
+<h2 id="how-to-generate-a-report"><a class="header" href="#how-to-generate-a-report">How to generate a report</a></h2>
+<p>Matches are observed headlessly with the instrumented runner at the repo root:</p>
+<pre><code class="language-bash">source venv/bin/activate
+python monitor_match.py
+</code></pre>
+<p>It runs a full match on a virtual clock (completes instantly), prints match
+statistics, and saves screenshots to <code>match_frames/</code>. Copy the relevant
+screenshots into <code>reports/assets/&lt;report-id&gt;/</code> and summarize the run in a new
+report file.</p>
+<h2 id="naming-convention"><a class="header" href="#naming-convention">Naming convention</a></h2>
+<pre><code>reports/&lt;YYYY-MM-DD&gt;-v&lt;version&gt;-&lt;label&gt;.md
+reports/assets/&lt;YYYY-MM-DD&gt;-v&lt;version&gt;/
+</code></pre>
+<h2 id="report-index"><a class="header" href="#report-index">Report index</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Date</th><th>Version</th><th>Report</th><th>Headline result</th></tr>
+</thead>
+<tbody>
+<tr><td>2026-07-09</td><td>0.1.0</td><td><a href="#match-report--baseline">Baseline</a></td><td>0–0, players clump in a corner; ball never really moves</td></tr>
+</tbody>
+</table>
+</div>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="match-report--baseline"><a class="header" href="#match-report--baseline">Match Report — Baseline</a></h1>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Field</th><th>Value</th></tr>
+</thead>
+<tbody>
+<tr><td>Date</td><td>2026-07-09</td></tr>
+<tr><td>Version</td><td>0.1.0 (<code>src/__init__.py</code>)</td></tr>
+<tr><td>Report type</td><td>Baseline / first observation</td></tr>
+<tr><td>Environment</td><td>Python 3.9.6, pygame 2.5.2, numpy 1.26.3</td></tr>
+<tr><td>Method</td><td>Headless full match via <code>monitor_match.py</code> (virtual clock, 60 fps, 90s match)</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="summary"><a class="header" href="#summary">Summary</a></h2>
+<p>The first observed match ended <strong>0–0</strong>. Within a few seconds, all ten players
+(both teams) collapse into a single clump pinned against the left goal and stay
+there for the rest of the match. The ball barely moves, ~2,500 powerless shots
+are taken, and no goals are scored. The simulation currently does not resemble a
+game of football — it is a static scrum.</p>
+<h2 id="measured-metrics"><a class="header" href="#measured-metrics">Measured metrics</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Metric</th><th>Result</th><th>Interpretation</th></tr>
+</thead>
+<tbody>
+<tr><td>Final score</td><td><strong>0 – 0</strong></td><td>No goals in a full match…</td></tr>
+<tr><td>Shots taken</td><td><strong>2,481</strong></td><td>…despite ~2,500 shot attempts</td></tr>
+<tr><td>Passes attempted / completed</td><td>13 / ~1</td><td>Almost no passing</td></tr>
+<tr><td>Possession</td><td>T1 <strong>0.0%</strong>, T2 51.4%, free 48.6%</td><td>Team 1 <em>never</em> holds the ball</td></tr>
+<tr><td>Ball speed</td><td>mean 9 px/s, still <strong>47.6%</strong> of frames</td><td>Ball barely moves</td></tr>
+<tr><td>Team-1 player spread</td><td><strong>6.3 px</strong> avg</td><td>All 5 players occupy ~one body</td></tr>
+<tr><td>Two players overlapping (&lt;15px)</td><td><strong>98.4%</strong> of frames</td><td>Everyone stands on everyone</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="screenshots"><a class="header" href="#screenshots">Screenshots</a></h2>
+<p><strong>Kickoff (0:04)</strong> — reasonable start, but Team 1’s five red players are already
+stacked on the same spot (overlapping <code>T1P...</code> labels):</p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="assets/2026-07-09-v0.1.0/t_4s.png" alt="kickoff"><span class="img-wrapper"><img src="assets/2026-07-09-v0.1.0/t_4s.png" alt="kickoff"></span></label></p>
+<p><strong>Mid-match (0:43)</strong> — every player from both teams has collapsed into one clump
+against the left goal:</p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="assets/2026-07-09-v0.1.0/t_43s.png" alt="midmatch"><span class="img-wrapper"><img src="assets/2026-07-09-v0.1.0/t_43s.png" alt="midmatch"></span></label></p>
+<p><strong>Late (1:22)</strong> — still the same corner scrum, still 0–0:</p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="assets/2026-07-09-v0.1.0/t_82s.png" alt="late"><span class="img-wrapper"><img src="assets/2026-07-09-v0.1.0/t_82s.png" alt="late"></span></label></p>
+<h2 id="root-cause-findings"><a class="header" href="#root-cause-findings">Root-cause findings</a></h2>
+<ol>
+<li><strong>Ball doesn’t stick to the ball carrier.</strong> When <code>ball.possession</code> is set,
+nothing moves the ball with the dribbling player (<code>src/entities.py</code>). The
+player runs off; the ball stays put.</li>
+<li><strong>Shots have ~zero power.</strong> <code>Player.shoot</code>/<code>pass_ball</code> drain stamina but there
+is no action cooldown, so the AI shoots <em>every frame</em> (2,481 times). Stamina
+pins at 0 → <code>power_factor ≈ 0</code> → the ball only dribbles a few pixels.</li>
+<li><strong>Team 1 gets 0% possession (turn-order bug).</strong> In <code>GameEngine.update</code>,
+<code>team1_ai</code> runs then <code>team2_ai</code>; whoever runs <em>last</em> overwrites
+<code>ball.possession</code> when near the ball, so Team 2 steals it every frame.</li>
+<li><strong>Goal detection can’t trigger</strong> because the ball never reaches the line with
+speed (consequence of #1/#2).</li>
+<li><strong>No player–player collisions</strong> — 98% overlap.</li>
+<li><strong>No real formations/roles</strong> — <code>role</code> and <code>formation</code> fields exist but all
+outfield players compute nearly the same target and swarm the ball.</li>
+<li><strong>Goalkeeper unused</strong> — <code>is_goalkeeper</code> exists but no keeper behavior.</li>
+<li><strong>Frame-rate-dependent physics</strong> — friction applied as <code>v *= 0.95</code> per frame
+regardless of <code>dt</code>.</li>
+<li><strong>Passing is near-random</strong> (3%/frame) and ignores opponents.</li>
+<li><strong>Missing football rules</strong> — no throw-ins, corners, offside, or fouls; every
+dead ball resets to center.</li>
+<li><strong>Match length is 90 <em>seconds</em>, not minutes</strong>; no half-time or winner handling.</li>
+</ol>
+<h2 id="prioritized-improvement-backlog"><a class="header" href="#prioritized-improvement-backlog">Prioritized improvement backlog</a></h2>
+<h3 id="tier-1--bugs-that-break-the-simulation"><a class="header" href="#tier-1--bugs-that-break-the-simulation">Tier 1 — Bugs that break the simulation</a></h3>
+<ul>
+<li><input disabled="" type="checkbox" checked=""> Glue the ball to its carrier until kicked.</li>
+<li><input disabled="" type="checkbox" checked=""> Add a per-player action cooldown; prevent shot power collapsing to zero.</li>
+<li><input disabled="" type="checkbox" checked=""> Resolve possession centrally with a proper tackle/contest (fix turn-order bug).</li>
+<li><input disabled="" type="checkbox" checked=""> Verify goal detection once the ball can actually reach the goal.</li>
+</ul>
+<h3 id="tier-2--positioning--ai-realism"><a class="header" href="#tier-2--positioning--ai-realism">Tier 2 — Positioning &amp; AI realism</a></h3>
+<ul>
+<li><input disabled="" type="checkbox" checked=""> Add circle-based player–player separation (no overlap).</li>
+<li><input disabled="" type="checkbox" checked=""> Implement role-based home positions and hold team shape.</li>
+<li><input disabled="" type="checkbox" checked=""> Only the pressing player chases the ball; others hold zones.</li>
+<li><input disabled="" type="checkbox" checked=""> Under pressure (an opponent chasing too close), the ball carrier should pass to a teammate or shoot if close enough, instead of dribbling into the presser (fixes a ball ping-pong loop after kickoff/goals).</li>
+</ul>
+<h3 id="tier-3--physics--match-fidelity"><a class="header" href="#tier-3--physics--match-fidelity">Tier 3 — Physics &amp; match fidelity</a></h3>
+<ul>
+<li><input disabled="" type="checkbox" checked=""> Make friction/decay <code>dt</code>-scaled (frame-rate independent).</li>
+<li><input disabled="" type="checkbox" checked=""> Improve ball physics (rolling friction, max speed, bounce; later spin/curve).</li>
+<li><input disabled="" type="checkbox" checked=""> Decision-based passing (open lanes, pressure, teammate position).</li>
+<li><input disabled="" type="checkbox" checked=""> Add goalkeeper role for one player of each team</li>
+<li><input disabled="" type="checkbox" checked=""> Smarter shooting (aim at open corners, account for keeper/angle/distance).</li>
+</ul>
+<h3 id="tier-4--rules--presentation"><a class="header" href="#tier-4--rules--presentation">Tier 4 — Rules &amp; presentation</a></h3>
+<ul>
+<li><input disabled="" type="checkbox" checked=""> Add out-of-bounds restarts (throw-ins, corners, goal kicks), offside, fouls.</li>
+<li><input disabled="" type="checkbox"> Configurable match duration, halves, and end-of-game winner screen.</li>
+<li><input disabled="" type="checkbox" checked=""> Make stamina affect speed and power gradually.</li>
+<li><input disabled="" type="checkbox" checked=""> Visual polish: mark goalkeeper, show possession, HUD stats (possession %, shots).</li>
+</ul>
+<h3 id="tier-5--introducing-player-controls"><a class="header" href="#tier-5--introducing-player-controls">Tier 5 — Introducing player controls</a></h3>
+<p>Goal: make <strong>Team 1</strong> human-controlled while Team 2 stays on <code>AIController</code>.
+The human drives one selected outfield player at a time; the other Team 1
+players keep their existing AI off-ball behavior (formation shape, defensive
+block, support runs). The engine still arbitrates possession, restarts and
+rules centrally — the human only supplies movement and actions.</p>
+<ul>
+<li><input disabled="" type="checkbox" checked=""> Control-mode switch: add a flag on <code>GameEngine</code> (e.g. <code>human_team</code>) that
+routes Team 1 through a human controller instead of <code>team1_ai</code>, defaulting
+to CPU so <code>monitor_match.py</code> and the headless experiment harness keep
+running all-AI.</li>
+<li><input disabled="" type="checkbox" checked=""> Input layer (<code>src/input.py</code>): read an 8-direction movement vector from
+held keys (arrows/WASD) via <code>pygame.key.get_pressed()</code>, and edge-trigger
+action buttons (pass, shoot, sprint, switch player) from KEYDOWN events in
+<code>main.py</code>. Map raw keys to semantic actions so bindings are rebindable and
+unit-testable without a window.</li>
+<li><input disabled="" type="checkbox" checked=""> <code>HumanController</code> for Team 1: move the <em>selected</em> player from the input
+vector (reuse <code>Player.move_towards</code> acceleration + <code>speed_factor</code>) and
+leave all non-selected teammates to the existing AI positioning. Exactly
+one human-controlled player at a time.</li>
+<li><input disabled="" type="checkbox" checked=""> <strong>Defensive auto-select with manual switch (required):</strong> when Team 1 is
+not in possession, auto-select the outfield player closest to the ball as
+the controlled player (reuse <code>AIController._nearest_outfield_to_ball</code>). A
+“switch player” button selects the <em>second-closest</em> player, and repeated
+presses cycle through the remaining players ordered by distance to the
+ball. Skip the goalkeeper by default and debounce the switch so one press
+advances exactly one player.</li>
+<li><input disabled="" type="checkbox" checked=""> Selection follows the ball on attack: when Team 1 gains possession, snap
+control to the ball carrier; after a human pass, hand control to the
+intended receiver so the human keeps controlling the on-ball player.
+- Fixed the PR #30/#31 Copilot finding here: replaced the roster-removal
+trick with an <code>AIController.controlled_player</code> exclusion — the human’s
+player stays in <code>team.players</code> (so <code>update_team_state()</code> correctly
+reports <code>attack</code> and teammates support the attack), while the AI skips
+it in active/support selection, the movement loops, the carrier action
+block, and the keeper update.</li>
+<li><input disabled="" type="checkbox" checked=""> On-ball actions for the selected player (gated by <code>Player.can_act()</code>
+cooldown): pass to the best teammate in the facing cone (reuse
+<code>Player.pass_ball</code>), shoot at the opponent goal via <code>Player.shoot</code>
+(optionally charge power by button-hold), and sprint (hold to raise speed
+at extra stamina drain via the existing stamina model). Dribbling already
+falls out of <code>carry_ball</code>.</li>
+<li><input disabled="" type="checkbox" checked=""> Selection indicator (<code>src/ui.py</code>): draw a distinct marker (e.g. a colored
+arrow above the head) on the human-selected player, visually separate from
+the possession halo and the goalkeeper’s gold ring.</li>
+<li><input disabled="" type="checkbox"> Goalkeeper policy: keep the GK AI-controlled for the human team by default
+(auto-select and switch skip it); optionally allow explicitly switching to
+the keeper.</li>
+<li><input disabled="" type="checkbox" checked=""> Fairness: the human-controlled player goes through the same central
+<code>GameEngine.resolve_possession</code> contest, restarts, offside and fouls — no
+privileged possession; the human only supplies movement and actions.</li>
+<li><input disabled="" type="checkbox" checked=""> Controls &amp; docs: keep SPACE (pause), R (reset), ESC (quit); add an
+on-screen legend of the human controls and document the scheme in
+<code>README.md</code>.</li>
+<li><input disabled="" type="checkbox"> Tests: headless unit tests for the input→action mapping and for the
+defensive auto-select/switch cycling (closest → second-closest → cycle
+back), driving a synthetic engine state so no window is required.</li>
+</ul>
+<h3 id="tier-6--tactical-realism-gaps-observed"><a class="header" href="#tier-6--tactical-realism-gaps-observed">Tier 6 — Tactical realism (gaps observed)</a></h3>
+<ul>
+<li><input disabled="" type="checkbox" checked=""> Defensive block with lines (“two banks”): defenders and midfielders hold
+flat lines that shift laterally with the ball and compress vertically,
+instead of relying only on man-marking + converge-on-carrier.</li>
+<li><input disabled="" type="checkbox" checked=""> Rest defense: cap how many players push forward in attack; keep 1–2
+defenders (plus keeper) goal-side of the ball during possession so a
+turnover doesn’t become an uncontested counter.</li>
+<li><input disabled="" type="checkbox"> Transition behavior on turnovers: an explicit counter-attack mode
+(breakout runs into space, fast vertical outlet pass) and a recovery
+mode (sprint goal-side and re-form the block) instead of an instant
+state flip with formation drift.</li>
+<li><input disabled="" type="checkbox"> Width and wing play: wide roles that hold the touchline (cap the
+formation slide so width is preserved), overlap runs, and crosses —
+a driven aerial/long pass into the box.</li>
+<li><input disabled="" type="checkbox"> Multiple coordinated off-ball runs: beyond the single support runner,
+2–3 simultaneous options (run in behind the line, show to feet,
+third-man rotation), each respecting the offside line.</li>
+<li><input disabled="" type="checkbox"> Structured build-up from the back: on goal kicks and deep possession,
+back players spread wide to offer angles and the keeper acts as an
+extra passer; the opponent decides to press high or drop off.</li>
+<li><input disabled="" type="checkbox"> Team pressing model: press triggers (backward pass, touchline trap,
+heavy touch) and a block that presses or drops as a unit by zone,
+instead of a permanent single nearest-man press.</li>
+<li><input disabled="" type="checkbox"> Penalty-box organization: defenders hold the box edge line and cover
+near/far post zonally; attackers make near-post/far-post/cutback runs
+instead of converging on the ball carrier.</li>
+<li><input disabled="" type="checkbox"> Set-piece shapes: dedicated formations for corners and free kicks
+(kicker, box targets, markers or zonal defenders) instead of a generic
+restart possession.</li>
+<li><input disabled="" type="checkbox"> Tempo and game-state management: vary decisions by score and clock —
+patient circulation vs. direct play, protecting a lead vs. chasing one.</li>
+<li><input disabled="" type="checkbox"> Scale rosters toward 11v11 with a fuller role taxonomy (CB/FB/CM/W/ST)
+once the tactical systems above exist to occupy those roles.</li>
+</ul>
+<h2 id="next-step-recommendation"><a class="header" href="#next-step-recommendation">Next-step recommendation</a></h2>
+<p>Start with <strong>Tier 1</strong>. Fixing ball-carrier attachment, shot cooldown/power, and
+the possession turn-order bug should be enough to turn this static 0–0 scrum into
+an actual flowing match, at which point the next report can measure real
+possession balance, shots on target, and goals.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="futebole-technical-paper"><a class="header" href="#futebole-technical-paper">Futebole Technical Paper</a></h1>
+<p><strong>An Agent-Based 2D Soccer Simulation Engine with Role-Aware Tactics and
+Mixed Human/AI Control</strong></p>
+<p>Marcos Teixeira · Futebole v0.1.0 · Updated July 2026</p>
+<p><a href="https://github.com/marcostx/futebole/blob/main/paper/main.tex">View the LaTeX source</a>
+· <a href="https://github.com/marcostx/futebole/blob/main/paper/main.pdf">Open the PDF</a></p>
+<h2 id="abstract"><a class="header" href="#abstract">Abstract</a></h2>
+<p>Futebole is an open, lightweight two-dimensional soccer simulation with two
+execution modes:</p>
+<ul>
+<li>reproducible all-AI matches between teams of six agents—five outfield
+players and a goalkeeper; and</li>
+<li>interactive mixed-control matches in which a human steers one selected
+player while the team AI coordinates the remaining five.</li>
+</ul>
+<p>The engine combines:</p>
+<ol>
+<li>timestep-aware point-mass physics with exponential rolling
+friction, capped kick speeds, momentum, and distance-scaled kick power;</li>
+<li>an order-independent probabilistic possession contest with tackles, fouls,
+dead-ball restarts, and a simplified offside policy;</li>
+<li>role-aware team behaviour: a three-state team machine, elastic formations,
+a two-bank defensive block, goal-side marking, rest defence, lane-aware
+passing, angle-gated shooting, and a dedicated goalkeeper; and</li>
+<li>a semantic input layer with phase-aware player selection, sprint, pass, and
+shoot actions, while retaining the same physics and central rules used by
+the AI.</li>
+</ol>
+<p>The autonomous mode was evaluated through 220 seeded headless matches across
+eleven parameter configurations. Common random numbers and paired sign-flip
+permutation tests isolate each parameter’s effect. The main findings are:</p>
+<ul>
+<li>disabling long-range shooting reduces scoring from 7.05 to 0.85 goals per
+match;</li>
+<li>eager pressure offloading and highly elastic formations each reduce scoring
+by roughly three goals per match; and</li>
+<li>tackle probability acts as a direct, monotonic control on turnover volume.</li>
+</ul>
+<p>A 90-second match with 16 ms virtual updates simulates in approximately
+0.76 seconds on one laptop-class CPU core, about 118 times faster than real
+time.</p>
+<h2 id="scope-of-the-evidence"><a class="header" href="#scope-of-the-evidence">Scope of the evidence</a></h2>
+<p>The experiment suite constructs <code>GameEngine(human_team=None)</code>, so every
+reported result characterises AI self-play. Human control was added later
+without changing that all-AI controller path; the full sweep was rerun after
+integration and reproduced the production, flow, and shape results. The
+derived definitions of pass completion, held-possession deviation, and
+geometric overlap were corrected, and runtime was refreshed on the current
+host. The human mode is covered by deterministic tests for input semantics,
+selection, AI exclusion, actions, visual markers, and rules invariants, but it
+has not yet received a user study or human-versus-AI balance calibration.</p>
+<h2 id="contributions"><a class="header" href="#contributions">Contributions</a></h2>
+<ul>
+<li>A formal description of the physics, movement, stamina, kick, possession,
+restart, and collision models.</li>
+<li>Explicit algorithms for possession arbitration, carrier decisions, pass
+targeting, formation movement, and player separation.</li>
+<li>A mixed-control architecture that cleanly separates human commands from
+tactical AI while sharing the same rules engine.</li>
+<li>A reproducible self-comparison methodology for tuning stochastic simulation
+parameters.</li>
+<li>An empirical sensitivity analysis of five tactical and physical parameters.</li>
+</ul>
+<h2 id="reading-guide"><a class="header" href="#reading-guide">Reading guide</a></h2>
+<ul>
+<li><a href="#architecture-and-control">Architecture and Control</a> describes modules, execution
+modes, the frame pipeline, and human/AI coordination.</li>
+<li><a href="#physics-and-entities">Physics and Entities</a> defines movement, friction, kicks, stamina,
+and the core constants.</li>
+<li><a href="#rules-and-possession">Rules and Possession</a> specifies ball control, tackles, fouls,
+restarts, offside, and collision handling.</li>
+<li><a href="#team-behaviour">Team Behaviour</a> covers formations, defending, attacking,
+passing, shooting, support, and goalkeeper logic.</li>
+<li><a href="#experimental-methodology">Experimental Methodology</a> explains the headless harness,
+metrics, configurations, and statistical test.</li>
+<li><a href="#results">Results</a> reports the parameter sweep and its practical
+implications.</li>
+<li><a href="#discussion-and-future-work">Discussion and Future Work</a> separates demonstrated behaviour
+from known simplifications and open work.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="background-and-design-context"><a class="header" href="#background-and-design-context">Background and Design Context</a></h1>
+<p>Simulated soccer has long been used to study multi-agent coordination in a
+continuous, dynamic, adversarial environment. RoboCup’s 2D Simulation League
+provides a standardized server on which teams build strategy, formations,
+opponent models, and set plays.</p>
+<p>Futebole targets a different layer. Instead of treating the simulator as a
+fixed substrate, it makes the substrate itself small and inspectable:</p>
+<ul>
+<li>the state transition from a parameter to an action is directly traceable;</li>
+<li>physics, possession, rules, and tactics live in ordinary Python modules;</li>
+<li>headless matches can be instrumented without replacing the engine; and</li>
+<li>a full match runs fast enough for paired multi-seed experiments.</li>
+</ul>
+<p>The project began with a deliberately minimal prototype. Its first observed
+match collapsed into a static scrum: players stacked on one point, Team 1
+recorded no possession because of controller ordering, 2,481 ineffective shot
+calls accumulated, and the score stayed 0–0. Development proceeded by turning
+each observed failure into an explicit mechanism and test:</p>
+<ol>
+<li>attach the ball to its carrier and add kick cooldowns;</li>
+<li>centralize possession arbitration;</li>
+<li>introduce roles, formation homes, and player separation;</li>
+<li>make physics and stochastic AI gates timestep-aware;</li>
+<li>add restarts, goalkeepers, passing lanes, shooting geometry, defensive
+shape, and rest defence; and</li>
+<li>add semantic input and mixed human/AI control without bypassing the central
+rules.</li>
+</ol>
+<h2 id="relationship-to-robocup"><a class="header" href="#relationship-to-robocup">Relationship to RoboCup</a></h2>
+<p>Futebole borrows several conceptual decompositions from simulated-soccer
+research:</p>
+<ul>
+<li>a discrete-time world model;</li>
+<li>formation positions as spatial priors;</li>
+<li>a distinguished active player;</li>
+<li>role-aware off-ball positioning;</li>
+<li>set-piece restart state; and</li>
+<li>team-level tactical modes.</li>
+</ul>
+<p>It does not attempt RoboCup server compatibility. In particular, Futebole AI
+has perfect global perception and no sensor noise, while RoboCup agents
+operate through a noisy server protocol.</p>
+<h2 id="steering-behaviours"><a class="header" href="#steering-behaviours">Steering behaviours</a></h2>
+<p>Player motion follows the steering-behaviour pattern: controllers continuously
+recompute targets, and entities blend velocity toward the requested direction.
+Tactics therefore choose <em>where to steer</em> while the entity layer owns
+acceleration, stamina scaling, integration, and friction.</p>
+<p>This separation is important for mixed control. Keyboard input and AI both
+produce movement intent; neither directly updates position.</p>
+<h2 id="simulation-methodology"><a class="header" href="#simulation-methodology">Simulation methodology</a></h2>
+<p>The evaluation uses two standard ideas from stochastic simulation:</p>
+<h3 id="common-random-numbers"><a class="header" href="#common-random-numbers">Common random numbers</a></h3>
+<p>Every configuration runs the same 20 seeds. Pairing like-for-like stochastic
+streams reduces noise in comparisons, especially before trajectories diverge.</p>
+<h3 id="distribution-free-paired-inference"><a class="header" href="#distribution-free-paired-inference">Distribution-free paired inference</a></h3>
+<p>Paired sign-flip permutation tests compare each configuration with the
+baseline without assuming normally distributed match metrics.</p>
+<p>The combination fits engine tuning: it measures a parameter’s effect on the
+same simulator rather than claiming superiority over another system.</p>
+<h2 id="design-position"><a class="header" href="#design-position">Design position</a></h2>
+<p>Futebole is best viewed as:</p>
+<ul>
+<li>a playable small-sided football simulation;</li>
+<li>a transparent testbed for game-AI mechanics;</li>
+<li>a regression target for emergent match behaviour; and</li>
+<li>a teaching-sized example of centralized rules with decentralized
+controller intent.</li>
+</ul>
+<p>It is not currently:</p>
+<ul>
+<li>a real-football prediction model;</li>
+<li>an 11-a-side tactical simulator;</li>
+<li>a RoboCup client;</li>
+<li>a physics-accurate ball model; or</li>
+<li>a calibrated human-versus-AI game.</li>
+</ul>
+<p>The distinction keeps the paper’s empirical claims aligned with what was
+actually measured.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="architecture-and-control"><a class="header" href="#architecture-and-control">Architecture and Control</a></h1>
+<h2 id="runtime-modules"><a class="header" href="#runtime-modules">Runtime modules</a></h2>
+<p>The simulation is deliberately small enough that every command can be traced
+from input or AI decision to a state transition.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Module</th><th>Responsibility</th></tr>
+</thead>
+<tbody>
+<tr><td><code>main.py</code></td><td>Pygame lifecycle, event loop, pause/reset/quit controls, 60 Hz pacing</td></tr>
+<tr><td><code>src/game_engine.py</code></td><td>World ownership, controller routing, update order, possession, scoring, and restarts</td></tr>
+<tr><td><code>src/entities.py</code></td><td><code>Ball</code>, <code>Player</code>, and <code>Team</code> state plus movement and kick mechanics</td></tr>
+<tr><td><code>src/ai.py</code></td><td>Team state, formation, defending, carrier decisions, passing, shooting, and goalkeeper policy</td></tr>
+<tr><td><code>src/input.py</code></td><td>Raw keys to semantic movement/actions</td></tr>
+<tr><td><code>src/human_controller.py</code></td><td>Human selection, action handling, steering, and AI exclusion</td></tr>
+<tr><td><code>src/ui.py</code></td><td>Field, entities, selection marker, controls, clock, score, possession, and shots</td></tr>
+</tbody>
+</table>
+</div>
+<p>The engine owns the world state. Controllers may request movement or kicks,
+but they do not integrate positions, decide possession, award goals, or place
+restarts.</p>
+<pre><code class="language-text">pygame events ──&gt; input.py ──&gt; InputFrame ───────────────┐
+                                                         v
+main.py ──&gt; GameEngine ──&gt; HumanController (optional) ──&gt; entities
+                    │             │                         ^
+                    │             └─ excludes selection ─┐  │
+                    ├────────────────────────────────────&gt;│  │
+                    └────────────&gt; AIController × 2 ─────┘  │
+                    │                                        │
+                    ├─ integrate / arbitrate / apply rules ──┘
+                    └──────────────────────────────────────&gt; UI
+</code></pre>
+<h2 id="execution-modes"><a class="header" href="#execution-modes">Execution modes</a></h2>
+<p><code>GameEngine</code> always creates one <code>AIController</code> per team.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Construction</th><th>Team 1</th><th>Team 2</th><th>Used by</th></tr>
+</thead>
+<tbody>
+<tr><td><code>GameEngine()</code></td><td>AI</td><td>AI</td><td><code>monitor_match.py</code>, experiments, most mechanics tests</td></tr>
+<tr><td><code>GameEngine(human_team="team1")</code></td><td>Human-selected player + AI teammates</td><td>AI</td><td>interactive <code>main.py</code></td></tr>
+<tr><td><code>GameEngine(human_team="team2")</code></td><td>AI</td><td>Human-selected player + AI teammates</td><td>supported alternate setup</td></tr>
+</tbody>
+</table>
+</div>
+<p>When a team is human-designated, <code>HumanController.update()</code> performs three
+operations:</p>
+<ol>
+<li>choose the selected outfield player for the current phase;</li>
+<li>assign that player to <code>AIController.controlled_player</code> and update the AI,
+which moves every other teammate; and</li>
+<li>apply human actions and steering to the selected player.</li>
+</ol>
+<p>Keeping the selected player in the roster is important. The AI still sees the
+correct possessor and team state, so teammates support a human carrier rather
+than behaving as if the ball were loose.</p>
+<h2 id="frame-pipeline"><a class="header" href="#frame-pipeline">Frame pipeline</a></h2>
+<p><code>GameEngine.update()</code> uses one central pipeline for both control modes:</p>
+<pre><code class="language-text">1. Return immediately when paused.
+2. Measure Δt and advance the 90-second match clock.
+3. Attempt a pending kickoff pass.
+4. Route each team through its AI or mixed human/AI controller.
+5. Integrate the ball.
+6. Integrate and field-clamp all 12 players.
+7. Resolve possession once for everyone.
+8. Accumulate held-ball possession time.
+9. Separate overlapping player discs.
+10. Attach the ball to its carrier.
+11. Resolve goals, restarts, or the legacy untouched-ball bounce.
+</code></pre>
+<p>The ordering is part of the rules:</p>
+<ul>
+<li>Kickoff happens before controllers can act, preventing a restart from being
+pre-empted.</li>
+<li>Possession is resolved after every controller and integration step. No team
+gets a last-writer advantage.</li>
+<li>Separation precedes carrying the ball so a displaced carrier brings the ball
+to its final position.</li>
+<li>Boundary handling observes the final ball position and last toucher.</li>
+</ul>
+<h2 id="time-model"><a class="header" href="#time-model">Time model</a></h2>
+<p>The interactive loop is capped at 60 frames per second, but the engine uses
+the measured timestep <code>dt</code>. Movement, friction, stamina, and probabilistic AI
+gates scale with <code>dt</code>; they do not assume that every runtime frame is exactly
+1/60 second.</p>
+<p>The headless harness replaces <code>pygame.time.get_ticks()</code> with a virtual clock
+advanced by <code>int(1000 / 60) = 16</code> ms per update. This integer-millisecond
+representation produces 5,625 updates in a 90-second match (an effective
+62.5 updates/s), and the measured <code>dt = 0.016</code> seconds is passed through the
+same engine pipeline without waiting for wall-clock time.</p>
+<h2 id="human-input-model"><a class="header" href="#human-input-model">Human input model</a></h2>
+<p><code>src/input.py</code> converts physical keys into an immutable <code>InputFrame</code>:</p>
+<ul>
+<li><code>move</code>: a normalized eight-direction vector from held movement keys;</li>
+<li><code>actions</code>: edge-triggered pass, shoot, and switch intents; and</li>
+<li><code>held</code>: continuous modifiers, currently sprint.</li>
+</ul>
+<p>Opposing directions cancel, and diagonal vectors are normalized, so diagonal
+movement is not faster than axial movement.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Intent</th><th>Default binding</th><th>Semantics</th></tr>
+</thead>
+<tbody>
+<tr><td>Move</td><td>W/A/S/D or arrows</td><td>Continuous normalized direction</td></tr>
+<tr><td>Sprint</td><td>either Shift key</td><td>Held modifier</td></tr>
+<tr><td>Pass</td><td>J</td><td>One-frame action</td></tr>
+<tr><td>Shoot</td><td>K</td><td>One-frame action</td></tr>
+<tr><td>Switch defender</td><td>Tab</td><td>One-frame action</td></tr>
+<tr><td>Pause / reset / quit</td><td>Space / R / Escape</td><td>System actions handled by <code>main.py</code></td></tr>
+</tbody>
+</table>
+</div>
+<p>The bindings are data (<code>KeyBindings</code>), not conditionals inside the controller,
+which keeps the layer rebindable and testable without a display.</p>
+<h2 id="player-selection"><a class="header" href="#player-selection">Player selection</a></h2>
+<p>Selection is phase-aware:</p>
+<ul>
+<li><strong>In possession:</strong> control follows the carrier. When a pass receiver gains
+possession, the human automatically takes control of that player. If the
+goalkeeper holds the ball, the goalkeeper is selected too.</li>
+<li><strong>Out of possession:</strong> the nearest outfield player to the ball is selected.
+Each Tab press advances through the distance-ordered outfield list and wraps
+at the end.</li>
+<li><strong>Goalkeepers:</strong> excluded from defensive auto-selection and Tab cycling, but
+controllable while they are the carrier.</li>
+</ul>
+<p>The selected player is shown by a cyan chevron. A white ring independently
+marks the ball carrier, and a gold ring marks each goalkeeper.</p>
+<h2 id="human-actions"><a class="header" href="#human-actions">Human actions</a></h2>
+<p>Movement steers toward a point 20 px along the input direction. Normal speed
+uses the player’s <code>max_speed</code>; sprint requests 1.3 times that value. The
+shared stamina model still scales the achieved speed and drains high-speed
+movement.</p>
+<p>On the ball:</p>
+<ul>
+<li><strong>Shoot</strong> reuses the AI’s blocker-aware corner target.</li>
+<li><strong>Pass</strong> chooses the nearest non-goalkeeper teammate in a ±72° facing cone
+(dot product at least 0.3), then falls back to the nearest teammate.</li>
+<li>If pass and shoot arrive together, shoot takes precedence.</li>
+<li>Both actions require possession and <code>Player.can_act()</code>.</li>
+</ul>
+<p>Human pass targeting is intentionally direct but less sophisticated than AI
+targeting: it does not apply lane or offside vetoes.</p>
+<h2 id="fairness-boundary"><a class="header" href="#fairness-boundary">Fairness boundary</a></h2>
+<p>Human control changes decision origin, not physical or rules authority:</p>
+<ul>
+<li>controllers cannot directly assign ball possession;</li>
+<li>one central <code>resolve_possession()</code> considers both teams;</li>
+<li>human and AI kicks use the same <code>Player.pass_ball()</code> and <code>Player.shoot()</code>;</li>
+<li>action cooldowns, stamina costs, power floors, loose-ball time, tackles,
+fouls, and restart entitlement are shared; and</li>
+<li><code>controlled_player</code> prevents double commands without removing the player
+from team-state calculations.</li>
+</ul>
+<p>When the selected carrier is the goalkeeper, the normal AI goalkeeper policy
+is suspended until the ball is released. With no input, that selected keeper
+therefore waits rather than distributing automatically.</p>
+<p>This is rules-level fairness, not proof of competitive balance. The AI has
+lane-aware and offside-aware pass assistance, while the human uses a facing
+cone. Human-versus-AI difficulty has not yet been calibrated.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="physics-and-entities"><a class="header" href="#physics-and-entities">Physics and Entities</a></h1>
+<h2 id="world-geometry"><a class="header" href="#world-geometry">World geometry</a></h2>
+<p>The Pygame window is 800 × 600 px. A 50 px margin on every side leaves a
+700 × 500 px playable rectangle. Each goal mouth spans the central 40% of the
+goal line.</p>
+<p>Each team has six players in a mirrored 2-2-1+GK formation:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Slot</th><th>Role</th><th style="text-align: right">Home x</th><th style="text-align: right">Home y</th></tr>
+</thead>
+<tbody>
+<tr><td>P1</td><td>defender</td><td style="text-align: right">0.18</td><td style="text-align: right">0.35</td></tr>
+<tr><td>P2</td><td>defender</td><td style="text-align: right">0.18</td><td style="text-align: right">0.65</td></tr>
+<tr><td>P3</td><td>midfielder</td><td style="text-align: right">0.40</td><td style="text-align: right">0.30</td></tr>
+<tr><td>P4</td><td>midfielder</td><td style="text-align: right">0.40</td><td style="text-align: right">0.70</td></tr>
+<tr><td>P5</td><td>striker</td><td style="text-align: right">0.62</td><td style="text-align: right">0.50</td></tr>
+<tr><td>P6</td><td>goalkeeper</td><td style="text-align: right">0.03</td><td style="text-align: right">0.50</td></tr>
+</tbody>
+</table>
+</div>
+<p>Coordinates are fractions of the field for Team 1, which attacks right.
+Team 2 mirrors each x coordinate as \(1-f_x\).</p>
+<h2 id="entity-state"><a class="header" href="#entity-state">Entity state</a></h2>
+<p>The world is represented by three core classes from <code>src/entities.py</code>.</p>
+<h3 id="ball"><a class="header" href="#ball"><code>Ball</code></a></h3>
+<ul>
+<li>position and velocity;</li>
+<li>radius 5 px;</li>
+<li>current possessor or <code>None</code>;</li>
+<li>last toucher for restart attribution; and</li>
+<li><code>loose_timer</code>, which prevents immediate recapture after a kick.</li>
+</ul>
+<h3 id="player"><a class="header" href="#player"><code>Player</code></a></h3>
+<ul>
+<li>position, velocity, radius 10 px, and maximum speed 100 px/s;</li>
+<li>role, home position, team colour, and goalkeeper flag;</li>
+<li>facing direction used by carrying, passing, and human aim;</li>
+<li>stamina, shot power, and action cooldown; and</li>
+<li>methods for movement, carrying, passing, shooting, and ball control.</li>
+</ul>
+<h3 id="team"><a class="header" href="#team"><code>Team</code></a></h3>
+<ul>
+<li>ordered player roster;</li>
+<li>score-adjacent telemetry: shot count and possession time; and</li>
+<li>display identity.</li>
+</ul>
+<p>The authoritative formation is <code>GameEngine.FORMATION</code>. The legacy
+<code>Team.formation = "4-4-2"</code> string is not used by the simulation.</p>
+<h2 id="discrete-time-integration"><a class="header" href="#discrete-time-integration">Discrete-time integration</a></h2>
+<p>The engine integrates position and then applies exponential velocity decay:</p>
+<div class="math">
+\[
+\mathbf{x}_{t+\Delta t}
+  = \mathbf{x}_t + \mathbf{v}_t\Delta t,
+\qquad
+\mathbf{v}_{t+\Delta t}
+  = \mathbf{v}_t\mu^{\Delta t}.
+\]
+</div>
+
+<p>Here \(\mu\) is the fraction of velocity retained after one second:</p>
+<ul>
+<li>players: \(\mu_e = 0.046\);</li>
+<li>ball: \(\mu_b = 0.05\).</li>
+</ul>
+<p>The exponent makes velocity attenuation over a fixed elapsed time independent
+of frame rate. Position is advanced before decay, so sampled trajectories
+still retain timestep error and are not exactly invariant across frame rates.
+For the ball, the equivalent continuous drag rate is</p>
+<div class="math">
+\[
+\lambda = -\ln \mu_b \approx 3.00\ \mathrm{s}^{-1}.
+\]
+</div>
+
+<p>A ball starting at speed \(v_0\) therefore has ideal infinite-horizon travel
+distance</p>
+<div class="math">
+\[
+d_\infty = \int_0^\infty v_0e^{-\lambda t}\,dt
+          = \frac{v_0}{\lambda}.
+\]
+</div>
+
+<p>The kick model inverts this relationship to choose a launch speed for an
+intended distance.</p>
+<p>Ball speed is capped at 900 px/s. An untouched ball that reaches a wall uses
+restitution \(e=0.8\); once a last toucher exists, field exits are rules
+events rather than bounces.</p>
+<h2 id="movement-and-momentum"><a class="header" href="#movement-and-momentum">Movement and momentum</a></h2>
+<p><code>Player.move_towards()</code> computes a stamina-adjusted desired velocity toward a
+target and blends the current velocity toward it:</p>
+<div class="math">
+\[
+\mathbf{v}
+\leftarrow
+\mathbf{v}
++ \left(\mathbf{v}^{*}-\mathbf{v}\right)\alpha(\Delta t),
+\qquad
+\alpha(\Delta t)
+= 1-(1-\beta)^{\Delta t f_0},
+\]
+</div>
+
+<p>where \(\beta=0.25\) is the blend per reference frame and
+\(f_0=60\ \mathrm{Hz}\). Repeated commands converge geometrically, producing
+short acceleration, braking, and turning transients rather than teleporting
+onto a new velocity.</p>
+<p>AI probabilities use the same frame-rate correction:</p>
+<div class="math">
+\[
+p(\Delta t)
+= 1-\left(1-p_{60}\right)^{\Delta t f_0}.
+\]
+</div>
+
+<p>This conversion is applied to stochastic offloads and long shots. The central
+tackle probability remains an explicitly per-frame contest parameter in the
+current engine.</p>
+<h2 id="carrying-and-loose-ball-time"><a class="header" href="#carrying-and-loose-ball-time">Carrying and loose-ball time</a></h2>
+<p>While possessed, the ball is placed one player radius plus one ball radius
+ahead of the carrier along the facing direction. It inherits the carrier’s
+velocity. This produces visible dribbling and gives the next kick a sensible
+origin.</p>
+<p>A kick:</p>
+<ol>
+<li>points the carrier toward its target;</li>
+<li>assigns the ball a velocity;</li>
+<li>releases possession;</li>
+<li>records the kicker as last toucher;</li>
+<li>starts 0.3 seconds of uncontrollable loose-ball time; and</li>
+<li>starts a 0.5-second player action cooldown.</li>
+</ol>
+<p>Loose-ball time prevents the kicker from reclaiming a shot or pass on the next
+frame.</p>
+<h2 id="kick-power"><a class="header" href="#kick-power">Kick power</a></h2>
+<p>For unit target direction \(\hat{\mathbf{u}}\), kick power \(P\), and
+stamina power factor \(\phi\):</p>
+<div class="math">
+\[
+\mathbf{v}_{\mathrm{ball}} = P\phi\hat{\mathbf{u}}.
+\]
+</div>
+
+<p>Passes are sized to arrive with modest residual pace:</p>
+<div class="math">
+\[
+P_{\mathrm{pass}}(d)
+=
+\min\left(
+  \max(d\lambda\gamma_p,\ P_{\min}),
+  V_{\max}
+\right),
+\]
+</div>
+
+<p>with \(\gamma_p=1.1\), \(P_{\min}=200\ \mathrm{px/s}\), and
+\(V_{\max}=900\ \mathrm{px/s}\).</p>
+<p>Shots use a larger reach margin and base power:</p>
+<div class="math">
+\[
+P_{\mathrm{shot}}(d)
+=
+\max\left(
+  P_0,
+  \min(d\lambda\gamma_s,\ P_{\max})
+\right),
+\]
+</div>
+
+<p>with \(\gamma_s=1.25\), \(P_0=500\ \mathrm{px/s}\), and
+\(P_{\max}=900\ \mathrm{px/s}\).</p>
+<h2 id="stamina"><a class="header" href="#stamina">Stamina</a></h2>
+<p>Every player starts with \(S=100\) stamina. For speed ratio
+\(\rho=|\mathbf{v}|/v_{\max}\):</p>
+<div class="math">
+\[
+\dot{s} =
+\begin{cases}
+-c_{\mathrm{sprint}}\rho,
+  &amp; \rho &gt; \rho_{\mathrm{sprint}}, \\
++c_{\mathrm{rec}},
+  &amp; \rho \lt \rho_{\mathrm{rec}}, \\
+0,
+  &amp; \text{otherwise}.
+\end{cases}
+\]
+</div>
+
+<p>Defaults:</p>
+<ul>
+<li>sprint threshold \(\rho_{\mathrm{sprint}}=0.75\);</li>
+<li>recovery threshold \(\rho_{\mathrm{rec}}=0.5\);</li>
+<li>sprint drain \(c_{\mathrm{sprint}}=2.5\ \mathrm{s}^{-1}\);</li>
+<li>recovery \(c_{\mathrm{rec}}=5\ \mathrm{s}^{-1}\);</li>
+<li>pass cost 5; and</li>
+<li>shot cost 10.</li>
+</ul>
+<p>Fatigue applies linear factors with floors:</p>
+<div class="math">
+\[
+\psi(s)
+= \psi_{\min} + (1-\psi_{\min})\frac{s}{S},
+\qquad
+\phi(s)
+= \phi_{\min} + (1-\phi_{\min})\frac{s}{S},
+\]
+</div>
+
+<p>where \(\psi_{\min}=0.85\) is the speed floor and
+\(\phi_{\min}=0.8\) the kick-power floor. Exhaustion changes outcomes but
+does not make a player non-functional.</p>
+<h2 id="principal-physical-parameters"><a class="header" href="#principal-physical-parameters">Principal physical parameters</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Constant</th><th>Meaning</th><th style="text-align: right">Default</th></tr>
+</thead>
+<tbody>
+<tr><td><code>BALL_FRICTION_PER_SEC</code></td><td>Ball velocity retained after one second</td><td style="text-align: right">0.05</td></tr>
+<tr><td><code>ENTITY_FRICTION_PER_SEC</code></td><td>Player velocity retained after one second</td><td style="text-align: right">0.046</td></tr>
+<tr><td><code>BALL_MAX_SPEED</code></td><td>Ball speed cap</td><td style="text-align: right">900 px/s</td></tr>
+<tr><td><code>BALL_RESTITUTION</code></td><td>Untouched-ball wall restitution</td><td style="text-align: right">0.8</td></tr>
+<tr><td><code>LOOSE_BALL_TIME</code></td><td>Uncontrollable time after a kick</td><td style="text-align: right">0.30 s</td></tr>
+<tr><td><code>ACTION_COOLDOWN</code></td><td>Kicker cooldown</td><td style="text-align: right">0.50 s</td></tr>
+<tr><td><code>MOVE_ACCEL_BLEND</code></td><td>Movement blend at 60 Hz</td><td style="text-align: right">0.25</td></tr>
+<tr><td><code>PASS_STAMINA_COST</code></td><td>Stamina charged per pass</td><td style="text-align: right">5</td></tr>
+<tr><td><code>SHOT_STAMINA_COST</code></td><td>Stamina charged per shot</td><td style="text-align: right">10</td></tr>
+<tr><td><code>MIN_SPEED_FACTOR</code></td><td>Exhausted-player speed floor</td><td style="text-align: right">0.85</td></tr>
+<tr><td><code>MIN_POWER_FACTOR</code></td><td>Exhausted-player kick floor</td><td style="text-align: right">0.80</td></tr>
+</tbody>
+</table>
+</div>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="rules-and-possession"><a class="header" href="#rules-and-possession">Rules and Possession</a></h1>
+<h2 id="why-possession-is-centralized"><a class="header" href="#why-possession-is-centralized">Why possession is centralized</a></h2>
+<p>The first prototype let each team controller assign possession to nearby
+players. Because controllers ran sequentially, the second controller could
+overwrite the first on every frame; the baseline report measured 0% possession
+for Team 1.</p>
+<p>The current engine resolves possession once, after both teams have issued
+commands and all entities have integrated. Controller order can no longer
+decide ownership.</p>
+<p>Possession is a discrete state: the ball has at most one holder.</p>
+<h2 id="eligibility"><a class="header" href="#eligibility">Eligibility</a></h2>
+<p>A player may gain a free ball when all of the following are true:</p>
+<ul>
+<li>the ball’s 0.3-second loose timer has expired;</li>
+<li>the player is within control distance
+\(|\mathbf{x}_p-\mathbf{x}_b| &lt; r_p+r_b+5\ \mathrm{px}\);</li>
+<li>the player’s action cooldown has expired; and</li>
+<li>during a restart, the player belongs to the entitled team.</li>
+</ul>
+<p>If several players are eligible for a free ball, the closest wins it.</p>
+<h2 id="possession-algorithm"><a class="header" href="#possession-algorithm">Possession algorithm</a></h2>
+<pre><code class="language-text">ResolvePossession:
+    if ball.loose_timer &gt; 0:
+        return
+
+    holder = ball.possession
+    if holder exists and holder is outside control range:
+        clear possession
+        holder = none
+
+    takers = all non-holder players who:
+        are in control range,
+        are off cooldown, and
+        satisfy restart entitlement
+
+    if holder is none:
+        if takers is non-empty:
+            holder = closest taker
+            record holder as last toucher
+            clear restart entitlement
+        return
+
+    opponents = takers from the other team
+    if opponents exist and random() &lt; TACKLE_SUCCESS_PROB:
+        tackler = closest opponent
+        if random() &lt; FOUL_PROB:
+            give tackler FOUL_COOLDOWN
+            keep the current holder
+        else:
+            transfer possession to tackler
+            record tackler as last toucher
+</code></pre>
+<p>Teammates never take the ball from each other. A player who has just kicked
+cannot immediately recapture the kick because both loose-ball time and the
+player cooldown are active.</p>
+<h2 id="tackles-and-fouls"><a class="header" href="#tackles-and-fouls">Tackles and fouls</a></h2>
+<p>The default tackle success probability is 0.05 per contested frame. When the
+tackle succeeds, a conditional foul probability of 0.15 is applied.</p>
+<p>A foul is intentionally simplified:</p>
+<ul>
+<li>the existing holder retains possession;</li>
+<li>the fouler receives a 1.5-second action cooldown; and</li>
+<li>there is no card, free-kick placement, wall, or advantage phase.</li>
+</ul>
+<p>This mechanism preserves flow while stopping the same player from
+immediately retrying the challenge.</p>
+<h2 id="kickoff"><a class="header" href="#kickoff">Kickoff</a></h2>
+<p>Team 1 takes the opening kickoff. After a goal, the conceding team restarts.</p>
+<p>At reset:</p>
+<ol>
+<li>every player returns to its formation home;</li>
+<li>positions are clamped at least 20 px inside the team’s own half;</li>
+<li>the non-kicking team stays at least 60 px from halfway, outside the centre
+circle;</li>
+<li>the most advanced outfield player of the kicking team moves to the centre
+spot with the ball; and</li>
+<li>before normal controller updates, the taker passes to one of its two
+nearest outfield teammates, selected uniformly.</li>
+</ol>
+<p>The pending flag remains set when the taker is still on cooldown, and the
+engine retries on the next frame.</p>
+<h2 id="goals-and-field-exits"><a class="header" href="#goals-and-field-exits">Goals and field exits</a></h2>
+<p>A goal is awarded when the ball centre crosses a goal line inside the central
+40% goal mouth.</p>
+<p>Every touched ball that exits elsewhere becomes a dead-ball restart:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Exit</th><th>Last touch</th><th>Restart</th></tr>
+</thead>
+<tbody>
+<tr><td>Sideline</td><td>Either team</td><td>Throw-in to the other team at the crossing point</td></tr>
+<tr><td>Goal line outside mouth</td><td>Defending team</td><td>Corner to attackers at the nearest corner</td></tr>
+<tr><td>Goal line outside mouth</td><td>Attacking team</td><td>Goal kick 40 px in front of the defending goal</td></tr>
+</tbody>
+</table>
+</div>
+<p>The engine places the ball, zeros its velocity and records <code>restart_team</code>.
+Only that team’s players may collect it. The ordinary nearest-player behaviour
+then sends a teammate to the ball; there is no separate set-piece formation.</p>
+<p>If a carrier dribbles out of play, the carrier is recorded as last toucher
+before attribution. A ball with no last toucher uses the old physical wall
+bounce instead.</p>
+<h2 id="simplified-offside"><a class="header" href="#simplified-offside">Simplified offside</a></h2>
+<p>Offside is currently a target-selection predicate, not a whistle in the rules
+engine. For attack direction \(\sigma\in{-1,+1}\), receiver \(p\) is
+considered offside when all three conditions hold:</p>
+<div class="math">
+\[
+(x_p-x_c)\sigma &gt; 0
+\quad\land\quad
+(x_p-x_b)\sigma &gt; 0
+\quad\land\quad
+(x_p-x_{(2)})\sigma &gt; 0,
+\]
+</div>
+
+<p>where:</p>
+<ul>
+<li>\(x_c\) is halfway;</li>
+<li>\(x_b\) is the ball; and</li>
+<li>\(x_{(2)}\) is the second-last opponent’s x coordinate.</li>
+</ul>
+<p>AI pass selection rejects such a target. Human pass targeting does not run
+this filter, which is why the documentation describes offside as a policy
+rather than a fully enforced law.</p>
+<h2 id="player-separation"><a class="header" href="#player-separation">Player separation</a></h2>
+<p>Players are discs of radius 10 px. After integration, every overlapping pair
+is projected apart along its line of centres:</p>
+<ol>
+<li>split the overlap equally between both players;</li>
+<li>clamp both centres to the field;</li>
+<li>recompute any overlap left because a boundary absorbed movement; and</li>
+<li>move whichever player still has room.</li>
+</ol>
+<p>Coincident centres use a deterministic horizontal separation axis. This
+positional projection eliminated the original stack of agents. Severe overlap
+under 15 px fell from 98.4% of prototype frames to 0% in the evaluated
+baseline; residual geometric overlap under 20 px occurs on 1.6% of baseline
+updates.</p>
+<h2 id="rules-level-fairness"><a class="header" href="#rules-level-fairness">Rules-level fairness</a></h2>
+<p>The following properties hold in both all-AI and mixed-control modes:</p>
+<ul>
+<li>one possession resolver sees every player;</li>
+<li>human input cannot assign possession;</li>
+<li>the current holder is not displaced by a teammate;</li>
+<li>both sides use the same control range and cooldown eligibility;</li>
+<li>restart entitlement is team-based, not controller-based;</li>
+<li>human pass and shoot actions call the same entity methods as AI actions; and</li>
+<li>tackle and foul probabilities do not depend on control type.</li>
+</ul>
+<p>These invariants are directly exercised by <code>tests/test_fairness.py</code>,
+<code>tests/test_possession_contest.py</code>, <code>tests/test_match_rules.py</code>, and
+<code>tests/test_control_mode.py</code>.</p>
+<h2 id="deliberate-simplifications"><a class="header" href="#deliberate-simplifications">Deliberate simplifications</a></h2>
+<ul>
+<li>Fouls do not create spatially placed free kicks or cards.</li>
+<li>Offside is not an engine-level stoppage.</li>
+<li>Corners and goal kicks do not trigger dedicated set-piece shapes.</li>
+<li>There are no halves, injury time, penalties, or throw animations.</li>
+<li>The 90-second clock represents one complete match, not 90 real minutes.</li>
+</ul>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="team-behaviour"><a class="header" href="#team-behaviour">Team Behaviour</a></h1>
+<p>This chapter describes <code>AIController</code>. In all-AI mode it drives every player.
+On a human-designated team it drives every player except
+<code>controlled_player</code>; the selected player remains visible to all team-state and
+support calculations.</p>
+<h2 id="team-state-machine"><a class="header" href="#team-state-machine">Team state machine</a></h2>
+<p>Each controller classifies the frame into one of three states:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>State</th><th>Condition</th></tr>
+</thead>
+<tbody>
+<tr><td><code>attack</code></td><td>A teammate holds the ball</td></tr>
+<tr><td><code>defense</code></td><td>An opponent holds the ball</td></tr>
+<tr><td><code>possession</code></td><td>Ball is free and this team’s nearest outfielder is closer than the opponent’s nearest</td></tr>
+</tbody>
+</table>
+</div>
+<p>For a free ball the state falls back to <code>defense</code> when the opposing side is
+closer.</p>
+<p>The state determines temporary roles:</p>
+<ul>
+<li><strong>active player:</strong> carrier in attack; nearest available outfielder to the
+ball in defense or a free-ball chase;</li>
+<li><strong>support player:</strong> nearest non-goalkeeper, non-defender teammate to the
+carrier; and</li>
+<li><strong>shape players:</strong> everyone else, positioned by formation, defensive block,
+marking, or rest-defence rules.</li>
+</ul>
+<p>The goalkeeper never becomes an outfield presser or support runner.</p>
+<h2 id="elastic-formation"><a class="header" href="#elastic-formation">Elastic formation</a></h2>
+<p>For ball position \(\mathbf{b}\), field centre \(\mathbf{c}\), player home
+\(\mathbf{h}_i\), and attack direction \(\sigma\), the neutral shape target
+is</p>
+<div class="math">
+\[
+\mathbf{T}_i =
+\Pi_{\mathcal{F}}\left[
+  \mathbf{h}_i
+  + \kappa_{\mathrm{slide}}(\mathbf{b}-\mathbf{c})
+  + \delta\sigma\hat{\mathbf{e}}_x
+\right].
+\]
+</div>
+
+<p>Defaults:</p>
+<ul>
+<li>slide gain \(\kappa_{\mathrm{slide}}=0.5\);</li>
+<li>attack push \(\delta=+130\ \mathrm{px}\);</li>
+<li>defense drop \(\delta=-60\ \mathrm{px}\);</li>
+<li>no phase shift in free-ball possession; and</li>
+<li>a 35 px interior clamp.</li>
+</ul>
+<p>The formation moves toward the ball without collapsing all home positions
+onto it. Mirroring x coordinates gives both teams the same geometry in
+opposite directions.</p>
+<h2 id="defensive-organisation"><a class="header" href="#defensive-organisation">Defensive organisation</a></h2>
+<h3 id="two-bank-block"><a class="header" href="#two-bank-block">Two-bank block</a></h3>
+<p>When the ball is more than 300 px from the defended goal, defenders and
+midfielders form two banks.</p>
+<p>For normalized horizontal threat distance
+\(t=\min(1,d_x(\mathbf{b},\mathrm{goal})/F_W)\):</p>
+<div class="math">
+\[
+D(t)=D_{\min}+(D_{\max}-D_{\min})t,
+\]
+</div>
+
+<div class="math">
+\[
+G(t)=G_{\min}+(G_{\max}-G_{\min})t.
+\]
+</div>
+
+<p>The defensive line depth \(D\) spans 80–240 px and the inter-bank gap
+\(G\) spans 60–120 px. Banks are spaced laterally by 100 px and follow the
+ball’s y coordinate with gain 0.6. Slots are assigned in home-y order so
+players do not swap sides.</p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/defensive_block.png" alt="Two-bank defensive block"><span class="img-wrapper"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/defensive_block.png" alt="Two-bank defensive block"></span></label></p>
+<h3 id="goal-side-marking"><a class="header" href="#goal-side-marking">Goal-side marking</a></h3>
+<p>Inside the 300 px threat zone, available markers are greedily paired to
+nearby opponents. A marker targets a point 22 px from the opponent toward the
+defended goal:</p>
+<div class="math">
+\[
+\mathbf{m}
+=
+\mathbf{o}
++ 22
+\frac{\mathbf{g}-\mathbf{o}}
+     {\|\mathbf{g}-\mathbf{o}\|}.
+\]
+</div>
+
+<p>The carrier is excluded from the mark list because the active defender
+presses it. An unassigned defender who is goal-side of the ball converges on
+the carrier instead of becoming a second goalkeeper.</p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/man_marking.png" alt="Goal-side man marking"><span class="img-wrapper"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/man_marking.png" alt="Goal-side man marking"></span></label></p>
+<h3 id="rest-defence"><a class="header" href="#rest-defence">Rest defence</a></h3>
+<p>During an attack, both defenders hold a cover line behind the ball instead of
+joining the forward push:</p>
+<div class="math">
+\[
+D_{\mathrm{rest}}
+=
+\operatorname{clip}
+\left(
+  d_x(\mathbf{b},\mathrm{own\ goal})-130,\ 130,\ 330
+\right)\ \mathrm{px}.
+\]
+</div>
+
+<p>The line follows the ball laterally with gain 0.4. This reduces unopposed
+counter-attacks after a turnover.</p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/rest_defense.png" alt="Rest-defence cover line"><span class="img-wrapper"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/rest_defense.png" alt="Rest-defence cover line"></span></label></p>
+<h2 id="carrier-policy"><a class="header" href="#carrier-policy">Carrier policy</a></h2>
+<p>An AI carrier evaluates actions in priority order:</p>
+<pre><code class="language-text">1. If inside 150 px and shot angle ≥ 0.35 rad:
+       shoot toward the blocker-aware corner target.
+2. Else if inside 320 px and the dt-scaled 0.02 long-shot gate fires:
+       take a long shot.
+3. Else if an opponent is within 30 px and the dt-scaled 0.06 gate fires:
+       pass to the best target, allowing a backward outlet.
+4. Else in build-up:
+       pass only if the best receiver is at least 5 px more open.
+5. Otherwise:
+       dribble goalward, widen a tight angle, and evade the nearest presser.
+</code></pre>
+<p>Every failed branch falls through to the next one; dribbling is the default.</p>
+<h2 id="pass-selection"><a class="header" href="#pass-selection">Pass selection</a></h2>
+<h3 id="candidate-range"><a class="header" href="#candidate-range">Candidate range</a></h3>
+<ul>
+<li>short passes: up to 130 px in any allowed direction;</li>
+<li>driven long passes: up to 260 px for forward targets;</li>
+<li>ordinary long target openness: at least 60 px from the nearest opponent;</li>
+<li>long target already in shooting range: relaxed to 30 px.</li>
+</ul>
+<p>Candidates in an offside position are rejected.</p>
+<h3 id="openness-and-score"><a class="header" href="#openness-and-score">Openness and score</a></h3>
+<p>Receiver openness is its nearest-opponent distance:</p>
+<div class="math">
+\[
+\omega(p)
+=
+\min_{o\in\mathrm{opponents}}
+\|\mathbf{x}_p-\mathbf{x}_o\|.
+\]
+</div>
+
+<p>Candidates maximize</p>
+<div class="math">
+\[
+J(r)
+=
+\omega(r)
+- \frac{1}{2}|x_{\mathrm{goal}}-x_r|,
+\]
+</div>
+
+<p>balancing freedom from pressure with progress toward goal.</p>
+<h3 id="lane-veto"><a class="header" href="#lane-veto">Lane veto</a></h3>
+<p>For carrier \(\mathbf{p}\), receiver \(\mathbf{q}\), and opponent
+\(\mathbf{o}\), project the opponent onto the pass segment:</p>
+<div class="math">
+\[
+t^*
+=
+\frac{
+  (\mathbf{o}-\mathbf{p})\cdot(\mathbf{q}-\mathbf{p})
+}{
+  \|\mathbf{q}-\mathbf{p}\|^2
+},
+\]
+</div>
+
+<div class="math">
+\[
+d^*
+=
+\left\|
+  \mathbf{o}
+  - \left(\mathbf{p}+t^*(\mathbf{q}-\mathbf{p})\right)
+\right\|.
+\]
+</div>
+
+<p>The lane is blocked when \(t^<em>\in[0.15,1]\) and \(d^</em>&lt;25\ \mathrm{px}\).
+The first 15% is ignored because an opponent beside the carrier is handled by
+the pressure-offload gate.</p>
+<p>Human passing does not use this candidate pipeline; it uses the facing-cone
+heuristic described in <a href="#architecture-and-control">Architecture and Control</a>.</p>
+<h2 id="shooting"><a class="header" href="#shooting">Shooting</a></h2>
+<p>The implementation estimates the angular width of the goal mouth as seen from
+the carrier:</p>
+<div class="math">
+\[
+\theta(\mathbf{x})
+=
+\left|
+\operatorname{atan2}(y_{\mathrm{top}}-y,\ x_g-x)
+-
+\operatorname{atan2}(y_{\mathrm{bottom}}-y,\ x_g-x)
+\right|.
+\]
+</div>
+
+<p>This is the raw absolute <code>atan2</code> difference. It is not wrapped onto the
+smaller angular interval, so mirrored positions facing the left and right
+goals can produce different values; the current equation documents that
+implementation rather than an ideal symmetric angle.</p>
+<p>Inside the 150 px close-shot range, the carrier shoots only when
+\(\theta\ge0.35\) rad (about 20°). From a tighter angle it dribbles inward.</p>
+<p>The target is the goal corner farther from the opponent nearest goal centre,
+usually the keeper. It is inset 15 px from the post and placed 10 px beyond
+the goal line. Uniform vertical noise grows with distance:</p>
+<div class="math">
+\[
+y_{\mathrm{aim}}
+= y_{\mathrm{corner}}+\mathrm{U}(-\nu,\nu),
+\]
+</div>
+
+<div class="math">
+\[
+\nu
+=
+5
++ 15
+\min\left(2.2,\frac{d}{R_{\mathrm{shot}}}\right)
+\ \mathrm{px}.
+\]
+</div>
+
+<p>Human shooting calls the same target function, so aiming assistance is shared.</p>
+<h2 id="support-runs"><a class="header" href="#support-runs">Support runs</a></h2>
+<p>The support runner targets a point 150 px ahead of the carrier at the carrier’s
+y coordinate. The target is clamped at least 12 px behind the current offside
+line to avoid a runner oscillating in and out of the AI candidate set.</p>
+<p>Other attacking outfield players move toward elastic shape at 85% tempo.
+Defensive off-ball movement uses 95% tempo, while active chases and support
+runs use full requested tempo.</p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/attack_support.png" alt="Attack support run"><span class="img-wrapper"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/attack_support.png" alt="Attack support run"></span></label></p>
+<h2 id="goalkeeper"><a class="header" href="#goalkeeper">Goalkeeper</a></h2>
+<p>The keeper has a separate three-mode policy:</p>
+<ol>
+<li><strong>Distribute:</strong> with possession, pass to the best open teammate; if no
+target exists, clear 350 px upfield.</li>
+<li><strong>Rush:</strong> attack a loose or opponent-held ball within 100 px of the own
+goal centre.</li>
+<li><strong>Hold line:</strong> remain at home depth and track the ball’s y coordinate,
+clamped 10 px inside the posts.</li>
+</ol>
+<p>While holding the ball on action cooldown, the goalkeeper waits rather than
+dribbling out. Keeper clearances use the shot mechanic for power but are not
+counted as attempts in the HUD.</p>
+<h2 id="behaviours-in-context"><a class="header" href="#behaviours-in-context">Behaviours in context</a></h2>
+<p>The publication frames below were captured from seed 7 in all-AI mode. In
+interactive mode the renderer additionally shows a cyan selection chevron and
+the controls legend.</p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/kickoff.png" alt="Kickoff formation"><span class="img-wrapper"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/kickoff.png" alt="Kickoff formation"></span></label></p>
+<p>After a goal, the conceding team is placed into the same restart geometry:</p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/post_goal_kickoff.png" alt="Post-goal kickoff"><span class="img-wrapper"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/post_goal_kickoff.png" alt="Post-goal kickoff"></span></label></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/goal_line_restart.png" alt="Goal-line restart"><span class="img-wrapper"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/goal_line_restart.png" alt="Goal-line restart"></span></label></p>
+<p><label class="checkbox-label"><input class="checkbox-img" type="checkbox"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/midmatch.png" alt="Open play at 0:44"><span class="img-wrapper"><img src="https://raw.githubusercontent.com/marcostx/futebole/main/paper/figures/midmatch.png" alt="Open play at 0:44"></span></label></p>
+<h2 id="principal-tactical-parameters"><a class="header" href="#principal-tactical-parameters">Principal tactical parameters</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Constant</th><th>Meaning</th><th style="text-align: right">Default</th></tr>
+</thead>
+<tbody>
+<tr><td><code>SHAPE_SLIDE</code></td><td>Formation slide gain</td><td style="text-align: right">0.5</td></tr>
+<tr><td><code>ATTACK_PUSH</code></td><td>Shape advance in attack</td><td style="text-align: right">130 px</td></tr>
+<tr><td><code>DEFENSE_DROP</code></td><td>Shape retreat in defense</td><td style="text-align: right">60 px</td></tr>
+<tr><td><code>SHOOT_RANGE</code></td><td>Deterministic shooting range</td><td style="text-align: right">150 px</td></tr>
+<tr><td><code>LONG_SHOT_RANGE</code></td><td>Outer long-shot range</td><td style="text-align: right">320 px</td></tr>
+<tr><td><code>LONG_SHOT_PROB</code></td><td>Long-shot probability at 60 Hz</td><td style="text-align: right">0.02</td></tr>
+<tr><td><code>PRESSURE_DIST</code></td><td>Radius for pressured-carrier logic</td><td style="text-align: right">30 px</td></tr>
+<tr><td><code>PRESSURE_PASS_PROB</code></td><td>Offload probability at 60 Hz</td><td style="text-align: right">0.06</td></tr>
+<tr><td><code>MIN_SHOT_ANGLE</code></td><td>Required close-shot angle</td><td style="text-align: right">0.35 rad</td></tr>
+<tr><td><code>LANE_BLOCK_RADIUS</code></td><td>Pass-corridor veto radius</td><td style="text-align: right">25 px</td></tr>
+<tr><td><code>MARK_ZONE_DIST</code></td><td>Switch from block to marking</td><td style="text-align: right">300 px</td></tr>
+<tr><td><code>MARK_DIST</code></td><td>Goal-side marking offset</td><td style="text-align: right">22 px</td></tr>
+<tr><td><code>GK_RUSH_DIST</code></td><td>Keeper rush radius</td><td style="text-align: right">100 px</td></tr>
+</tbody>
+</table>
+</div>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="experimental-methodology"><a class="header" href="#experimental-methodology">Experimental Methodology</a></h1>
+<h2 id="evaluation-question"><a class="header" href="#evaluation-question">Evaluation question</a></h2>
+<p>The experiment does not compare Futebole with another simulator and does not
+measure which side is stronger. It asks:</p>
+<blockquote>
+<p>How does changing one engine parameter alter the ecosystem of an otherwise
+symmetric self-play match?</p>
+</blockquote>
+<p>Both teams use the same parameter values in every match. Each configuration is
+compared with the repository baseline, not with the opposing team.</p>
+<h2 id="headless-harness"><a class="header" href="#headless-harness">Headless harness</a></h2>
+<p><code>experiments/run_experiments.py</code> runs the real engine with:</p>
+<ul>
+<li>SDL video and audio set to dummy drivers;</li>
+<li><code>GameEngine()</code> with no human-designated team;</li>
+<li>a virtual <code>pygame.time.get_ticks()</code> clock;</li>
+<li>one deterministic random seed per match; and</li>
+<li>instrumentation around existing entity methods.</li>
+</ul>
+<p>The virtual clock advances by
+<code>int(1000 / 60) = 16</code> milliseconds per update. Because engine time is derived
+from integer milliseconds, a 90-second match contains 5,625 updates—an
+effective 62.5 updates/s, despite the harness’s nominal <code>FPS = 60</code> label.
+Physics and dt-corrected AI gates receive the actual 0.016-second timestep.</p>
+<p>The loop exits when <code>engine.game_time</code> reaches the 90-second
+<code>match_duration</code>. It does not render and does not include frozen frames after
+the match ends.</p>
+<h2 id="reproducibility"><a class="header" href="#reproducibility">Reproducibility</a></h2>
+<p>Python’s global pseudorandom number generator is seeded once per match. Every
+stochastic event consumes that stream:</p>
+<ul>
+<li>tackle success;</li>
+<li>foul decisions;</li>
+<li>pressured offloads;</li>
+<li>long-shot gates;</li>
+<li>shot noise; and</li>
+<li>kickoff receiver choice.</li>
+</ul>
+<p>A configuration/seed pair is therefore reproducible for a fixed code revision.</p>
+<p>The sweep uses seeds 1 through 20 for every configuration. Reusing seeds is a
+common-random-numbers design: the same initial random stream is shared until a
+changed parameter causes execution paths to diverge.</p>
+<h2 id="instrumentation"><a class="header" href="#instrumentation">Instrumentation</a></h2>
+<p>The harness wraps <code>Player.pass_ball()</code> to count attempted passes and tracks
+whether the intended receiver becomes the next possessor. It samples engine
+state after each update.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Metric</th><th>Definition</th></tr>
+</thead>
+<tbody>
+<tr><td>Goals</td><td>Combined score of both teams</td></tr>
+<tr><td>Shots</td><td>Team shot counters; goalkeeper clearances excluded</td></tr>
+<tr><td>Passes</td><td>Successful <code>pass_ball()</code> calls</td></tr>
+<tr><td>Pass completion</td><td>Intended receivers that next gain possession / passes</td></tr>
+<tr><td>Possession deviation</td><td>Absolute deviation of Team 1’s held-ball share from 50%</td></tr>
+<tr><td>Turnovers</td><td>Updates where the holding team changes</td></tr>
+<tr><td>Free-ball share</td><td>Updates with no possessor</td></tr>
+<tr><td>Restarts</td><td>Throw-ins, corners, and goal kicks awarded</td></tr>
+<tr><td>Moving ball speed</td><td>Mean speed on updates above 1 px/s</td></tr>
+<tr><td>Stillness</td><td>Share of updates at or below 1 px/s</td></tr>
+<tr><td>Team spread</td><td>Mean pairwise distance among Team 1 players</td></tr>
+<tr><td>Overlap</td><td>Share of updates whose closest pair is under 20 px by more than a 1e-6 floating-point tolerance</td></tr>
+</tbody>
+</table>
+</div>
+<p>The first non-null possessor after a pass decides completion: the attempt
+counts only when that player is the intended receiver.</p>
+<h2 id="parameter-sweep"><a class="header" href="#parameter-sweep">Parameter sweep</a></h2>
+<p>Five parameters are varied one at a time around the baseline:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Configuration</th><th>Parameter</th><th style="text-align: right">Value</th><th style="text-align: right">Baseline</th></tr>
+</thead>
+<tbody>
+<tr><td>baseline</td><td>—</td><td style="text-align: right">—</td><td style="text-align: right">—</td></tr>
+<tr><td>tackle-low</td><td><code>TACKLE_SUCCESS_PROB</code></td><td style="text-align: right">0.01</td><td style="text-align: right">0.05</td></tr>
+<tr><td>tackle-high</td><td><code>TACKLE_SUCCESS_PROB</code></td><td style="text-align: right">0.15</td><td style="text-align: right">0.05</td></tr>
+<tr><td>press-pass-low</td><td><code>PRESSURE_PASS_PROB</code></td><td style="text-align: right">0.01</td><td style="text-align: right">0.06</td></tr>
+<tr><td>press-pass-high</td><td><code>PRESSURE_PASS_PROB</code></td><td style="text-align: right">0.20</td><td style="text-align: right">0.06</td></tr>
+<tr><td>long-shot-off</td><td><code>LONG_SHOT_PROB</code></td><td style="text-align: right">0.00</td><td style="text-align: right">0.02</td></tr>
+<tr><td>long-shot-high</td><td><code>LONG_SHOT_PROB</code></td><td style="text-align: right">0.10</td><td style="text-align: right">0.02</td></tr>
+<tr><td>shoot-short</td><td><code>SHOOT_RANGE</code></td><td style="text-align: right">100 px</td><td style="text-align: right">150 px</td></tr>
+<tr><td>shoot-long</td><td><code>SHOOT_RANGE</code></td><td style="text-align: right">220 px</td><td style="text-align: right">150 px</td></tr>
+<tr><td>shape-rigid</td><td><code>SHAPE_SLIDE</code></td><td style="text-align: right">0.2</td><td style="text-align: right">0.5</td></tr>
+<tr><td>shape-elastic</td><td><code>SHAPE_SLIDE</code></td><td style="text-align: right">0.8</td><td style="text-align: right">0.5</td></tr>
+</tbody>
+</table>
+</div>
+<p>Eleven configurations × 20 shared seeds produce 220 matches.</p>
+<p>The driver snapshots every overridden module constant, restores all defaults
+before applying a configuration, and restores the baseline after the sweep.</p>
+<h2 id="paired-sign-flip-test"><a class="header" href="#paired-sign-flip-test">Paired sign-flip test</a></h2>
+<p>For metric \(m\), configuration \(c\), baseline \(b\), and seed \(i\),
+the paired difference is</p>
+<div class="math">
+\[
+d_i = m_{c,i}-m_{b,i}.
+\]
+</div>
+
+<p>The statistic is \(|\bar{d}|\). Under the null, each observed difference is
+randomly multiplied by \(-1\) or \(+1\). With 20,000 random sign
+assignments:</p>
+<div class="math">
+\[
+p
+=
+\frac{
+  1
+  + \#\left\{
+    \pi:
+    \left|\overline{\epsilon^\pi d}\right|
+    \ge |\bar{d}|
+  \right\}
+}{
+  1 + 20{,}000
+},
+\qquad
+\epsilon_i^\pi\in\{-1,+1\}.
+\]
+</div>
+
+<p>The analysis reports mean paired effects and two-sided p-values:</p>
+<ul>
+<li><code>*</code>: \(p&lt;0.05\);</li>
+<li><code>**</code>: \(p&lt;0.01\).</li>
+</ul>
+<p>There are 60 reported contrasts. A Bonferroni threshold would be
+\(0.05/60\approx0.0008\). The long-shot removal, eager-offload, and
+turnover effects survive that stricter posture. The high-elasticity scoring
+effect remains significant at \(p&lt;0.01\), but its
+\(p\approx0.0015\) does not cross the Bonferroni threshold.</p>
+<h2 id="generated-artifacts"><a class="header" href="#generated-artifacts">Generated artifacts</a></h2>
+<p>The reproducibility chain is:</p>
+<pre><code class="language-text">experiments/run_experiments.py
+    └─&gt; experiments/results.csv
+          └─&gt; experiments/aggregate.py
+                ├─&gt; paper/generated/summary_main.tex
+                ├─&gt; paper/generated/summary_flow.tex
+                ├─&gt; paper/generated/pvalues.tex
+                └─&gt; paper/generated/*.dat
+
+experiments/capture_figures.py
+    └─&gt; paper/figures/*.png
+</code></pre>
+<p><code>aggregate.py</code> groups rows by configuration, computes means and sample
+standard deviations, runs paired sign-flip tests, and writes the LaTeX table
+rows and plotting data consumed by the publication.</p>
+<h2 id="scope-after-human-control"><a class="header" href="#scope-after-human-control">Scope after human control</a></h2>
+<p>The experiment suite always uses <code>GameEngine()</code> and therefore remains all-AI.
+The current interactive entry point uses <code>GameEngine(human_team="team1")</code>, but
+that branch is not entered by the sweep. The complete 220-match experiment was
+rerun after mixed-control integration and reproduced the goal, shot,
+pass-volume, turnover, ball-flow, and shape results. This revision also
+corrects the derived definitions of next-possessor pass completion,
+held-possession deviation, and geometric overlap; runtime was refreshed on the
+current host. The results establish behaviour of the simulation substrate and
+autonomous policy; they do not measure human performance, usability, or
+difficulty balance.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="results"><a class="header" href="#results">Results</a></h1>
+<p>The tables below summarize 20 seeded all-AI matches per configuration. Values
+are mean ± sample standard deviation.</p>
+<h2 id="baseline"><a class="header" href="#baseline">Baseline</a></h2>
+<p>The evaluated baseline produces:</p>
+<ul>
+<li><strong>7.05 ± 2.58 goals</strong>;</li>
+<li><strong>14.9 ± 2.5 shots</strong>;</li>
+<li><strong>62.4 ± 6.6 passes</strong>;</li>
+<li><strong>98.1% ± 1.6 pp pass completion</strong>;</li>
+<li><strong>3.9 ± 2.7 pp possession deviation</strong> from an even held-ball split; and</li>
+<li><strong>23.4 ± 4.1 turnovers</strong> per 90-second match.</li>
+</ul>
+<p>The ball is essentially still on only 0.8% of updates. Geometric player
+overlap occurs on 1.6% of updates under the 20 px criterion; no pair crossed
+the older, severe 15 px threshold in the evaluated baseline. The pre-rebuild
+prototype measured 47.6% stillness and 98.4% severe overlap.</p>
+<h2 id="match-production"><a class="header" href="#match-production">Match production</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Configuration</th><th style="text-align: right">Goals</th><th style="text-align: right">Shots</th><th style="text-align: right">Passes</th><th style="text-align: right">Pass completion</th><th style="text-align: right">Possession deviation</th><th style="text-align: right">Turnovers</th></tr>
+</thead>
+<tbody>
+<tr><td>baseline</td><td style="text-align: right">7.05 ± 2.58</td><td style="text-align: right">14.9 ± 2.5</td><td style="text-align: right">62.4 ± 6.6</td><td style="text-align: right">98.1 ± 1.6%</td><td style="text-align: right">3.9 ± 2.7 pp</td><td style="text-align: right">23.4 ± 4.1</td></tr>
+<tr><td>tackle 0.01</td><td style="text-align: right">8.05 ± 2.19</td><td style="text-align: right">16.3 ± 1.7</td><td style="text-align: right">58.3 ± 7.0</td><td style="text-align: right">98.3 ± 1.6%</td><td style="text-align: right">3.4 ± 2.3 pp</td><td style="text-align: right">17.9 ± 2.0</td></tr>
+<tr><td>tackle 0.15</td><td style="text-align: right">6.70 ± 1.72</td><td style="text-align: right">15.2 ± 1.6</td><td style="text-align: right">66.3 ± 7.9</td><td style="text-align: right">98.2 ± 1.1%</td><td style="text-align: right">2.5 ± 2.0 pp</td><td style="text-align: right">37.1 ± 6.3</td></tr>
+<tr><td>pressure pass 0.01</td><td style="text-align: right">6.30 ± 1.87</td><td style="text-align: right">15.1 ± 1.8</td><td style="text-align: right">40.2 ± 4.5</td><td style="text-align: right">97.6 ± 2.9%</td><td style="text-align: right">2.8 ± 2.1 pp</td><td style="text-align: right">23.6 ± 3.5</td></tr>
+<tr><td>pressure pass 0.20</td><td style="text-align: right">4.15 ± 1.39</td><td style="text-align: right">13.9 ± 1.4</td><td style="text-align: right">77.4 ± 7.6</td><td style="text-align: right">98.1 ± 1.4%</td><td style="text-align: right">3.3 ± 2.1 pp</td><td style="text-align: right">21.9 ± 2.8</td></tr>
+<tr><td>long shots off</td><td style="text-align: right">0.85 ± 0.67</td><td style="text-align: right">0.8 ± 0.7</td><td style="text-align: right">68.1 ± 12.8</td><td style="text-align: right">92.4 ± 4.1%</td><td style="text-align: right">3.8 ± 2.4 pp</td><td style="text-align: right">29.8 ± 6.0</td></tr>
+<tr><td>long-shot probability 0.10</td><td style="text-align: right">6.90 ± 2.53</td><td style="text-align: right">19.8 ± 1.2</td><td style="text-align: right">64.8 ± 5.9</td><td style="text-align: right">99.0 ± 1.1%</td><td style="text-align: right">2.2 ± 1.6 pp</td><td style="text-align: right">23.9 ± 3.2</td></tr>
+<tr><td>shooting range 100 px</td><td style="text-align: right">6.80 ± 2.14</td><td style="text-align: right">15.4 ± 1.4</td><td style="text-align: right">61.1 ± 6.5</td><td style="text-align: right">98.3 ± 1.4%</td><td style="text-align: right">3.1 ± 2.2 pp</td><td style="text-align: right">21.6 ± 2.6</td></tr>
+<tr><td>shooting range 220 px</td><td style="text-align: right">8.75 ± 2.86</td><td style="text-align: right">16.6 ± 1.9</td><td style="text-align: right">59.2 ± 7.3</td><td style="text-align: right">98.4 ± 1.6%</td><td style="text-align: right">2.8 ± 2.6 pp</td><td style="text-align: right">22.4 ± 3.0</td></tr>
+<tr><td>shape slide 0.2</td><td style="text-align: right">6.80 ± 1.44</td><td style="text-align: right">16.9 ± 1.1</td><td style="text-align: right">56.6 ± 6.7</td><td style="text-align: right">98.7 ± 2.1%</td><td style="text-align: right">3.6 ± 3.1 pp</td><td style="text-align: right">23.4 ± 3.5</td></tr>
+<tr><td>shape slide 0.8</td><td style="text-align: right">4.05 ± 1.82</td><td style="text-align: right">14.4 ± 2.5</td><td style="text-align: right">71.0 ± 7.7</td><td style="text-align: right">97.3 ± 1.6%</td><td style="text-align: right">2.1 ± 1.7 pp</td><td style="text-align: right">24.7 ± 3.9</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="ball-flow-and-spatial-structure"><a class="header" href="#ball-flow-and-spatial-structure">Ball flow and spatial structure</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Configuration</th><th style="text-align: right">Free ball</th><th style="text-align: right">Restarts</th><th style="text-align: right">Moving speed</th><th style="text-align: right">Still</th><th style="text-align: right">Spread</th><th style="text-align: right">Overlap</th></tr>
+</thead>
+<tbody>
+<tr><td>baseline</td><td style="text-align: right">43.4 ± 2.7%</td><td style="text-align: right">1.1 ± 0.9</td><td style="text-align: right">134 ± 6 px/s</td><td style="text-align: right">0.8 ± 0.5%</td><td style="text-align: right">183 ± 6 px</td><td style="text-align: right">1.6 ± 1.3%</td></tr>
+<tr><td>tackle 0.01</td><td style="text-align: right">43.8 ± 2.9%</td><td style="text-align: right">1.1 ± 0.9</td><td style="text-align: right">137 ± 4 px/s</td><td style="text-align: right">0.8 ± 0.4%</td><td style="text-align: right">185 ± 5 px</td><td style="text-align: right">1.9 ± 1.7%</td></tr>
+<tr><td>tackle 0.15</td><td style="text-align: right">44.8 ± 3.4%</td><td style="text-align: right">0.8 ± 1.0</td><td style="text-align: right">136 ± 4 px/s</td><td style="text-align: right">0.7 ± 0.5%</td><td style="text-align: right">186 ± 6 px</td><td style="text-align: right">1.3 ± 0.9%</td></tr>
+<tr><td>pressure pass 0.01</td><td style="text-align: right">32.9 ± 3.8%</td><td style="text-align: right">0.8 ± 0.6</td><td style="text-align: right">123 ± 5 px/s</td><td style="text-align: right">0.4 ± 0.3%</td><td style="text-align: right">192 ± 10 px</td><td style="text-align: right">2.0 ± 1.1%</td></tr>
+<tr><td>pressure pass 0.20</td><td style="text-align: right">48.2 ± 3.0%</td><td style="text-align: right">0.9 ± 0.9</td><td style="text-align: right">136 ± 4 px/s</td><td style="text-align: right">0.7 ± 0.5%</td><td style="text-align: right">184 ± 6 px</td><td style="text-align: right">1.3 ± 0.8%</td></tr>
+<tr><td>long shots off</td><td style="text-align: right">24.2 ± 4.1%</td><td style="text-align: right">0.1 ± 0.2</td><td style="text-align: right">99 ± 5 px/s</td><td style="text-align: right">0.0%</td><td style="text-align: right">198 ± 10 px</td><td style="text-align: right">12.2 ± 4.1%</td></tr>
+<tr><td>long-shot probability 0.10</td><td style="text-align: right">50.6 ± 1.5%</td><td style="text-align: right">1.2 ± 1.2</td><td style="text-align: right">146 ± 4 px/s</td><td style="text-align: right">0.8 ± 0.5%</td><td style="text-align: right">189 ± 5 px</td><td style="text-align: right">0.3 ± 0.3%</td></tr>
+<tr><td>shooting range 100 px</td><td style="text-align: right">44.0 ± 2.9%</td><td style="text-align: right">1.4 ± 1.2</td><td style="text-align: right">136 ± 6 px/s</td><td style="text-align: right">0.8 ± 0.5%</td><td style="text-align: right">185 ± 5 px</td><td style="text-align: right">1.6 ± 1.1%</td></tr>
+<tr><td>shooting range 220 px</td><td style="text-align: right">44.6 ± 3.1%</td><td style="text-align: right">0.3 ± 0.7</td><td style="text-align: right">136 ± 6 px/s</td><td style="text-align: right">0.5 ± 0.4%</td><td style="text-align: right">184 ± 5 px</td><td style="text-align: right">1.0 ± 0.9%</td></tr>
+<tr><td>shape slide 0.2</td><td style="text-align: right">45.7 ± 2.2%</td><td style="text-align: right">1.2 ± 1.1</td><td style="text-align: right">146 ± 5 px/s</td><td style="text-align: right">0.6 ± 0.3%</td><td style="text-align: right">198 ± 4 px</td><td style="text-align: right">0.9 ± 1.1%</td></tr>
+<tr><td>shape slide 0.8</td><td style="text-align: right">42.8 ± 2.8%</td><td style="text-align: right">0.6 ± 0.9</td><td style="text-align: right">128 ± 5 px/s</td><td style="text-align: right">0.3 ± 0.5%</td><td style="text-align: right">179 ± 5 px</td><td style="text-align: right">1.8 ± 1.3%</td></tr>
+</tbody>
+</table>
+</div>
+<p>The free-ball share includes every pass and shot’s 0.3-second in-flight
+window, plus dead balls and contested loose balls. It should not be
+interpreted as inactivity.</p>
+<h2 id="paired-effects-against-baseline"><a class="header" href="#paired-effects-against-baseline">Paired effects against baseline</a></h2>
+<p>Each cell is mean paired change with its two-sided sign-flip p-value.</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Configuration</th><th style="text-align: right">Goals</th><th style="text-align: right">Shots</th><th style="text-align: right">Passes</th><th style="text-align: right">Turnovers</th><th style="text-align: right">Free ball</th><th style="text-align: right">Spread</th></tr>
+</thead>
+<tbody>
+<tr><td>tackle 0.01</td><td style="text-align: right">+1.0 (0.148)</td><td style="text-align: right">+1.4 (0.032)</td><td style="text-align: right">-4.1 (0.043)</td><td style="text-align: right"><strong>-5.5 (&lt;0.001)</strong></td><td style="text-align: right">+0.4 (0.552)</td><td style="text-align: right">+1.1 (0.371)</td></tr>
+<tr><td>tackle 0.15</td><td style="text-align: right">-0.3 (0.612)</td><td style="text-align: right">+0.3 (0.707)</td><td style="text-align: right">+3.9 (0.060)</td><td style="text-align: right"><strong>+13.8 (&lt;0.001)</strong></td><td style="text-align: right">+1.5 (0.119)</td><td style="text-align: right">+2.1 (0.308)</td></tr>
+<tr><td>pressure pass 0.01</td><td style="text-align: right">-0.8 (0.404)</td><td style="text-align: right">+0.1 (0.873)</td><td style="text-align: right"><strong>-22.2 (&lt;0.001)</strong></td><td style="text-align: right">+0.1 (0.929)</td><td style="text-align: right"><strong>-10.5 (&lt;0.001)</strong></td><td style="text-align: right"><strong>+8.8 (0.002)</strong></td></tr>
+<tr><td>pressure pass 0.20</td><td style="text-align: right"><strong>-2.9 (&lt;0.001)</strong></td><td style="text-align: right">-1.0 (0.127)</td><td style="text-align: right"><strong>+15.0 (&lt;0.001)</strong></td><td style="text-align: right">-1.4 (0.246)</td><td style="text-align: right"><strong>+4.9 (&lt;0.001)</strong></td><td style="text-align: right">+0.2 (0.920)</td></tr>
+<tr><td>long shots off</td><td style="text-align: right"><strong>-6.2 (&lt;0.001)</strong></td><td style="text-align: right"><strong>-14.1 (&lt;0.001)</strong></td><td style="text-align: right">+5.7 (0.051)</td><td style="text-align: right"><strong>+6.3 (&lt;0.001)</strong></td><td style="text-align: right"><strong>-19.2 (&lt;0.001)</strong></td><td style="text-align: right"><strong>+14.8 (&lt;0.001)</strong></td></tr>
+<tr><td>long-shot probability 0.10</td><td style="text-align: right">-0.1 (0.900)</td><td style="text-align: right"><strong>+4.8 (&lt;0.001)</strong></td><td style="text-align: right">+2.4 (0.253)</td><td style="text-align: right">+0.5 (0.765)</td><td style="text-align: right"><strong>+7.2 (&lt;0.001)</strong></td><td style="text-align: right"><strong>+5.7 (0.002)</strong></td></tr>
+<tr><td>shooting range 100 px</td><td style="text-align: right">-0.2 (0.747)</td><td style="text-align: right">+0.5 (0.431)</td><td style="text-align: right">-1.3 (0.542)</td><td style="text-align: right">-1.8 (0.060)</td><td style="text-align: right">+0.6 (0.352)</td><td style="text-align: right">+1.8 (0.268)</td></tr>
+<tr><td>shooting range 220 px</td><td style="text-align: right"><strong>+1.7 (0.009)</strong></td><td style="text-align: right"><strong>+1.7 (0.002)</strong></td><td style="text-align: right">-3.2 (0.082)</td><td style="text-align: right">-1.1 (0.303)</td><td style="text-align: right">+1.2 (0.030)</td><td style="text-align: right">+0.3 (0.881)</td></tr>
+<tr><td>shape slide 0.2</td><td style="text-align: right">-0.2 (0.770)</td><td style="text-align: right">+2.0 (0.012)</td><td style="text-align: right">-5.8 (0.019)</td><td style="text-align: right">+0.1 (1.000)</td><td style="text-align: right">+2.3 (0.010)</td><td style="text-align: right"><strong>+14.3 (&lt;0.001)</strong></td></tr>
+<tr><td>shape slide 0.8</td><td style="text-align: right"><strong>-3.0 (0.001)</strong></td><td style="text-align: right">-0.6 (0.507)</td><td style="text-align: right"><strong>+8.6 (&lt;0.001)</strong></td><td style="text-align: right">+1.3 (0.388)</td><td style="text-align: right">-0.6 (0.474)</td><td style="text-align: right">-4.2 (0.083)</td></tr>
+</tbody>
+</table>
+</div>
+<p>Bold cells have \(p&lt;0.01\).</p>
+<h2 id="tackle-probability-controls-volatility"><a class="header" href="#tackle-probability-controls-volatility">Tackle probability controls volatility</a></h2>
+<p>Turnovers move monotonically from 17.9 at tackle probability 0.01, through
+23.4 at baseline, to 37.1 at 0.15. Goal production remains within noise.</p>
+<p>The contest layer therefore changes <em>who</em> holds the ball without destabilizing
+the shooting and scoring chain. At low tackle probability, carriers survive
+longer, shoot slightly more, and make fewer recycling passes.</p>
+<h2 id="eager-pressure-offloading-hurts-penetration"><a class="header" href="#eager-pressure-offloading-hurts-penetration">Eager pressure offloading hurts penetration</a></h2>
+<p>Pressure-pass probability produces the largest circulation swing:</p>
+<ul>
+<li>0.01: 40.2 passes and 32.9% free-ball share;</li>
+<li>baseline 0.06: 62.4 passes and 43.4% free-ball share;</li>
+<li>0.20: 77.4 passes and 48.2% free-ball share.</li>
+</ul>
+<p>At 0.20, goals fall by 2.9 per match. Pressured carriers release the ball
+before dribbling into the long-shot band; backward outlets increase
+circulation without creating penetration.</p>
+<h2 id="long-shots-are-load-bearing"><a class="header" href="#long-shots-are-load-bearing">Long shots are load-bearing</a></h2>
+<p>Disabling probabilistic shots from 150–320 px reduces:</p>
+<ul>
+<li>shots from 14.9 to 0.8; and</li>
+<li>goals from 7.05 to 0.85.</li>
+</ul>
+<p>The block, goal-side marking, and rest defence make clean entry into the
+inner shooting zone rare. Long shots are the release valve that prevents
+sterile possession. The ball still moves continuously with long shots
+disabled—stillness falls to 0%—but play becomes lower-speed midfield
+circulation, with fewer in-flight frames and a wider team shape.</p>
+<p>Increasing long-shot probability from 0.02 to 0.10 adds 4.8 shots but no goals.
+Distance-scaled noise and the goalkeeper absorb the extra low-quality attempts.</p>
+<h2 id="shooting-range-is-asymmetric"><a class="header" href="#shooting-range-is-asymmetric">Shooting range is asymmetric</a></h2>
+<p>Reducing deterministic shooting range from 150 to 100 px changes little
+because the inner zone is rarely reached.</p>
+<p>Extending it to 220 px increases goals by 1.7 and shots by 1.7. The larger
+range converts part of the probabilistic long-shot band into guaranteed
+attempts. Opportunity creation, rather than finishing power, is the main
+offensive bottleneck.</p>
+<h2 id="excess-formation-elasticity-creates-congestion"><a class="header" href="#excess-formation-elasticity-creates-congestion">Excess formation elasticity creates congestion</a></h2>
+<p>A rigid slide gain of 0.2 keeps the widest shape (198 px spread) and slightly
+increases shots without changing goals.</p>
+<p>A high gain of 0.8 pulls the formation toward the ball:</p>
+<ul>
+<li>spread shrinks;</li>
+<li>passes rise by 8.6; and</li>
+<li>goals fall by 3.0.</li>
+</ul>
+<p>Nearby marked teammates create short circulation and occupy the carrier’s
+dribbling corridors. The result is emergent congestion, not an explicit rule.</p>
+<h2 id="runtime"><a class="header" href="#runtime">Runtime</a></h2>
+<p>One 90-second match with 5,625 updates and 12 agents took
+0.760 ± 0.011 seconds on the measured Apple laptop-class CPU, approximately
+118× real time and 7,397 updates/s including instrumentation.</p>
+<p>The complete 220-match sweep ran in under three minutes, making the protocol
+practical as a regression and tuning harness.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="discussion-and-future-work"><a class="header" href="#discussion-and-future-work">Discussion and Future Work</a></h1>
+<h2 id="what-self-comparison-establishes"><a class="header" href="#what-self-comparison-establishes">What self-comparison establishes</a></h2>
+<p>Because both teams share each configuration, a contrast measures the effect of
+a mechanism on the match ecosystem—tempo, circulation, spacing, and
+production—not competitive advantage.</p>
+<p>This is useful during engine development. Disabling long shots for both teams,
+for example, cannot change their relative strength, but it reveals that the
+current defensive stack makes the long-shot channel essential to scoring.
+Asymmetric win-rate evaluation would miss that ecosystem-level dependency.</p>
+<p>Shared seeds reduce variance early in paired matches. The benefit decays over
+time: once one configuration consumes a different random branch, later tackle,
+offload, and shot draws no longer represent the same event sequence.</p>
+<h2 id="external-validity"><a class="header" href="#external-validity">External validity</a></h2>
+<p>The measured magnitudes are stylized rather than calibrated to professional
+football:</p>
+<ul>
+<li>six players per side;</li>
+<li>one 90-second period;</li>
+<li>roughly seven combined goals;</li>
+<li>98% pass completion; and</li>
+<li>perfect, global perception for AI agents.</li>
+</ul>
+<p>High completion exposes a modeling gap. Opponents only block a lane at kick
+time; they do not read the ball flight and intercept dynamically. The lane
+veto therefore removes almost every risky AI pass before it is attempted.</p>
+<p>The engine is best interpreted as an inspectable agent-based football system
+for mechanics and behaviour experiments, not a calibrated prediction model.</p>
+<h2 id="fairness-and-control-asymmetry"><a class="header" href="#fairness-and-control-asymmetry">Fairness and control asymmetry</a></h2>
+<p>Mirrored AI teams have:</p>
+<ul>
+<li>identical roster and parameters;</li>
+<li>mirrored formation geometry;</li>
+<li>the same global perception;</li>
+<li>controller commands issued before integration; and</li>
+<li>one central possession contest.</li>
+</ul>
+<p>Configuration-level mean held-possession deviation ranges from 2.1 to
+3.9 percentage points.</p>
+<p>Mixed-control mode preserves physical and rules-level fairness:</p>
+<ul>
+<li>human input cannot set possession;</li>
+<li>all actions use shared entity methods;</li>
+<li>both control types pay the same stamina costs;</li>
+<li>cooldowns and loose-ball windows are shared; and</li>
+<li>tackles, fouls, and restarts are controller-agnostic.</li>
+</ul>
+<p>Decision support is not symmetric. AI passing filters lanes and offside
+positions; human passing uses a facing cone and nearest-player fallback.
+Rules-level fairness should not be confused with equal assistance or equal
+playing strength.</p>
+<h2 id="human-mode-evidence"><a class="header" href="#human-mode-evidence">Human-mode evidence</a></h2>
+<p>Automated tests cover:</p>
+<ul>
+<li>input normalization and edge-triggered actions;</li>
+<li>valid control-mode construction;</li>
+<li>selection following possession;</li>
+<li>closest-player auto-selection and Tab cycling;</li>
+<li>defensive goalkeeper exclusion and on-ball goalkeeper selection;</li>
+<li>selected-player exclusion from AI commands;</li>
+<li>pass, shoot, and sprint behavior;</li>
+<li>the cyan selection marker and controls legend; and</li>
+<li>central possession and restart fairness.</li>
+</ul>
+<p>The 220-match study does not cover:</p>
+<ul>
+<li>human win rate;</li>
+<li>player learning curve;</li>
+<li>input latency or responsiveness;</li>
+<li>subjective difficulty;</li>
+<li>accessibility; or</li>
+<li>whether targeting assistance feels fair.</li>
+</ul>
+<p>Those require mixed-control simulations or user studies, not inference from
+AI self-play.</p>
+<h2 id="known-simplifications"><a class="header" href="#known-simplifications">Known simplifications</a></h2>
+<h3 id="match-structure"><a class="header" href="#match-structure">Match structure</a></h3>
+<ul>
+<li>The complete match is 90 seconds with no halves or added time.</li>
+<li><code>end_game()</code> pauses the engine; there is no winner presentation.</li>
+<li>There are no tournaments, substitutions, injuries, or penalties.</li>
+</ul>
+<h3 id="laws"><a class="header" href="#laws">Laws</a></h3>
+<ul>
+<li>Offside is an AI target veto, not a whistle.</li>
+<li>Fouls retain possession and cooldown the tackler; no cards or free-kick
+placement exist.</li>
+<li>Corners, goal kicks, and throw-ins have entitlement but no specialized
+set-piece animation or team shape.</li>
+</ul>
+<h3 id="ball-and-contact"><a class="header" href="#ball-and-contact">Ball and contact</a></h3>
+<ul>
+<li>The ball is a point-mass-like disc with no spin, curve, height, or aerial
+phase.</li>
+<li>Exponential velocity decay is timestep-corrected, but drift is integrated
+before decay, so sampled positions are not exactly timestep-invariant.</li>
+<li>Tackles are probabilistic proximity contests rather than physical challenge
+animations.</li>
+<li>A single 0.3-second loose timer models every pass and shot flight.</li>
+</ul>
+<h3 id="team-intelligence"><a class="header" href="#team-intelligence">Team intelligence</a></h3>
+<ul>
+<li>Perception is perfect and global.</li>
+<li>State changes are immediate; there is no explicit counter-attack or recovery
+transition.</li>
+<li>Only one support runner is coordinated.</li>
+<li>Pass receivers do not adapt their run to ball flight.</li>
+<li>Defenders do not reactively intercept after a pass is kicked.</li>
+<li>The shot-angle difference is not wrapped to the smaller angular interval,
+so mirrored left-goal and right-goal evaluations can differ.</li>
+<li>The goalkeeper has three simple modes and no box-specific catch model.</li>
+</ul>
+<h3 id="human-control"><a class="header" href="#human-control">Human control</a></h3>
+<ul>
+<li>Defensive selection and Tab cycling exclude the goalkeeper; an on-ball
+goalkeeper is selected automatically and waits for human input.</li>
+<li>Pass targeting is simpler than AI targeting.</li>
+<li>Human offside is not enforced.</li>
+<li>Difficulty and assistance levels are not configurable.</li>
+</ul>
+<h2 id="threats-to-inference"><a class="header" href="#threats-to-inference">Threats to inference</a></h2>
+<p>Goal counts are low integers and paired differences can be heavy-tailed. The
+sign-flip test assumes sign symmetry under the null. Conclusions should
+emphasize effects that are:</p>
+<ol>
+<li>large in practical terms;</li>
+<li>monotonic across both directions of a sweep; and</li>
+<li>statistically strong.</li>
+</ol>
+<p>The long-shot, eager-offload, high-elasticity, and turnover findings satisfy
+those criteria. Smaller p-values do not make the system representative of real
+football.</p>
+<h2 id="future-work"><a class="header" href="#future-work">Future work</a></h2>
+<h3 id="tactical-model"><a class="header" href="#tactical-model">Tactical model</a></h3>
+<ul>
+<li>explicit counter-attack and recovery states;</li>
+<li>width preservation, wing progression, and crosses;</li>
+<li>multiple coordinated off-ball runs;</li>
+<li>structured buildup from goalkeeper possession and goal kicks;</li>
+<li>pressing triggers and cover shadows;</li>
+<li>penalty-box occupation and set-piece shapes;</li>
+<li>score- and clock-aware tempo; and</li>
+<li>richer roles on the path toward 11-a-side.</li>
+</ul>
+<h3 id="mixed-control"><a class="header" href="#mixed-control">Mixed control</a></h3>
+<ul>
+<li>human-versus-AI playtesting and difficulty calibration;</li>
+<li>lane-aware optional pass assistance;</li>
+<li>engine-level offside shared by both modes;</li>
+<li>configurable defensive goalkeeper selection and auto-distribution;</li>
+<li>rebinding UI and accessibility settings; and</li>
+<li>separate telemetry for human decisions and AI teammate support.</li>
+</ul>
+<h3 id="evaluation"><a class="header" href="#evaluation">Evaluation</a></h3>
+<ul>
+<li>reactive pass interception;</li>
+<li>current-version mixed-control match studies;</li>
+<li>calibration against real small-sided football distributions;</li>
+<li>repeated sweeps as regression checks after tactical changes; and</li>
+<li>strategy recommendation or opponent adaptation on top of the current
+inspectable substrate.</li>
+</ul>
+<h2 id="conclusion"><a class="header" href="#conclusion">Conclusion</a></h2>
+<p>Futebole combines timestep-aware movement, distance-scaled kicks, stamina,
+central possession arbitration, rule-based restarts, role-aware team tactics,
+and mixed human/AI control in one compact engine.</p>
+<p>The parameter sweep demonstrates that its mechanisms interact in measurable
+ways: long shots prevent defensive gridlock, early offloading can reduce
+penetration, excessive formation attraction creates congestion, and tackle
+probability controls turnover volatility.</p>
+<p>The current evidence is deliberately bounded. It is strong evidence about the
+all-AI simulation at the evaluated revision, supported by deterministic tests
+for mixed-control invariants. It is not yet evidence of real-football
+calibration or human-versus-AI balance.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="references"><a class="header" href="#references">References</a></h1>
+<ol>
+<li>
+<p>H. Kitano, M. Asada, Y. Kuniyoshi, I. Noda, and E. Osawa.
+“RoboCup: The Robot World Cup Initiative.” <em>Proceedings of the First
+International Conference on Autonomous Agents</em>, ACM, 1997, pp. 340–347.</p>
+</li>
+<li>
+<p>M. Chen, K. Dorer, E. Foroughi, et al. <em>Users Manual: RoboCup Soccer
+Server for Soccer Server Version 7.07 and Later.</em> The RoboCup Federation,
+2003.</p>
+</li>
+<li>
+<p>P. Henriques Abreu, D. Castro Silva, F. Almeida, and J. Mendes-Moreira.
+“Improving a Simulated Soccer Team’s Performance through a Memory-Based
+Collaborative Filtering Approach.” <em>Applied Soft Computing</em> 23 (2014),
+pp. 180–193.</p>
+</li>
+<li>
+<p>H. Akiyama and I. Noda. “Multi-Agent Positioning Mechanism in the Dynamic
+Environment.” <em>RoboCup 2007: Robot Soccer World Cup XI</em>, Springer, 2008,
+pp. 377–384.</p>
+</li>
+<li>
+<p>P. Stone and M. Veloso. “Multiagent Systems: A Survey from a Machine
+Learning Perspective.” <em>Autonomous Robots</em> 8(3) (2000), pp. 345–383.</p>
+</li>
+<li>
+<p>C. W. Reynolds. “Steering Behaviors for Autonomous Characters.”
+<em>Proceedings of the Game Developers Conference</em>, 1999, pp. 763–782.</p>
+</li>
+<li>
+<p>A. M. Law. <em>Simulation Modeling and Analysis</em>, 5th ed. McGraw-Hill,
+New York, 2015.</p>
+</li>
+<li>
+<p>P. Good. <em>Permutation, Parametric and Bootstrap Tests of Hypotheses</em>,
+3rd ed. Springer, New York, 2005.</p>
+</li>
+<li>
+<p>J. Demšar. “Statistical Comparisons of Classifiers over Multiple Data
+Sets.” <em>Journal of Machine Learning Research</em> 7 (2006), pp. 1–30.</p>
+</li>
+<li>
+<p>P. Shinners. “Pygame: Python Game Development Library,” version 2.5.2.
+<a href="https://www.pygame.org">https://www.pygame.org</a>, 2011 (accessed 2026).</p>
+</li>
+</ol>
+<h2 id="project-artifacts"><a class="header" href="#project-artifacts">Project artifacts</a></h2>
+<ul>
+<li><a href="https://github.com/marcostx/futebole">Current source repository</a></li>
+<li><a href="https://github.com/marcostx/futebole/blob/main/paper/main.tex">LaTeX paper source</a></li>
+<li><a href="https://github.com/marcostx/futebole/blob/main/experiments/run_experiments.py">Experiment driver</a></li>
+<li><a href="https://github.com/marcostx/futebole/blob/main/experiments/aggregate.py">Aggregation and permutation tests</a></li>
+<li><a href="https://github.com/marcostx/futebole/blob/main/experiments/capture_figures.py">Figure capture script</a></li>
+</ul>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+
+            </nav>
+
+        </div>
+
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-09f2665d.js"></script>
+
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-abc7f01d.js"></script>
+        <script src="book-609e4cb8.js"></script>
+
+        <!-- Custom JS scripts -->
+
+        <script>
+        window.addEventListener('load', function() {
+            MathJax.Hub.Register.StartupHook('End', function() {
+                window.setTimeout(window.print, 100);
+            });
+        });
+        </script>
+
+
+    </div>
+    </body>
+</html>

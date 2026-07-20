@@ -3,7 +3,9 @@
 
 # Soccer Simulation Project
 
-A simple 2D soccer simulation game built with Python and Pygame where two AI-controlled teams compete against each other.
+A 2D soccer simulation built with Python and Pygame. The interactive game is
+human vs AI; the same engine also runs reproducible all-AI matches for
+headless monitoring and experiments.
 
 ## Gameplay Preview
 
@@ -12,49 +14,62 @@ A simple 2D soccer simulation game built with Python and Pygame where two AI-con
 
 ## Features
 
-- Two AI-controlled teams with 3-5 players each
-- Basic AI decision-making: moving towards the ball, passing, shooting
+- 6v6 teams: five role-aware outfield players plus a goalkeeper
+- Human-controlled Team 1 with AI teammates, against an autonomous Team 2
+- Tactical AI for formations, defensive blocks, marking, rest defence,
+  passing, shooting, support runs, and goalkeeping
+- Timestep-aware movement, stamina, possession contests, and restarts
 - Simple 2D graphical interface using Pygame
-- Scoreboard and match timer
-- Human vs AI: Team 1 is keyboard-controlled, Team 2 is AI (see Controls)
+- Scoreboard, match timer, possession, shots, selection marker, and controls
+
+## Documentation
+
+Read the [technical documentation and simulation paper](https://marcostx.github.io/futebole/)
+for the engine architecture, equations, rules, tactical model, human-control
+fairness, and 220-match parameter sweep.
 
 ## Project Structure
 ```futebole/
 ├── README.md
+├── book.toml
 ├── requirements.txt
 ├── main.py
-├── assets/
-│   ├── field.png
-│   └── ball.png
-└── src/
-    ├── __init__.py
-    ├── game_engine.py
-    ├── entities.py
-    ├── ai.py
-    ├── ui.py
-    └── utils.py
+├── monitor_match.py
+├── experiments/       # Seeded parameter sweep and paper artifacts
+├── paper/             # LaTeX publication, generated tables, and figures
+├── reports/           # mdBook source and development reports
+├── src/
+│   ├── game_engine.py
+│   ├── entities.py
+│   ├── ai.py
+│   ├── human_controller.py
+│   ├── input.py
+│   └── ui.py
+└── tests/
 ```
 
-Installation
+## Installation
 
 Clone the repository:
-git clone https://github.com/yourusername/soccer-simulation.git
-cd soccer-simulation
-
-# Create a virtual environment:
+```bash
+git clone https://github.com/marcostx/futebole.git
+cd futebole
 ```
+
+Create a virtual environment:
+```bash
 python -m venv venv
 ```
 
 Activate the virtual environment:
 
 On macOS/Linux:
-```
+```bash
 source venv/bin/activate
 ```
 
 Install dependencies:
-```
+```bash
 pip install -r requirements.txt
 ```
 

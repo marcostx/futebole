@@ -1,9 +1,23 @@
-# Reports
+# Le Futebole Documentation
 
-This folder tracks the **evolution of the soccer simulation** over time. Each
-report captures the state of the game at a point in time: how a match actually
-plays out, measured metrics, observed problems, and a prioritized list of
-improvements.
+Le Futebole is a compact 2D soccer simulation with timestep-aware
+physics, explicit possession and restart rules, role-aware team tactics, and
+mixed human/AI control.
+
+The documentation has two complementary parts:
+
+- The [technical paper](paper/README.md) explains how the current simulation
+  works, from the update loop and physics through tactical AI, human controls,
+  and the seeded evaluation protocol.
+- The development reports below preserve point-in-time observations of the
+  game. They show how the simulation evolved and why particular mechanics were
+  introduced.
+
+## Development reports
+
+Each report captures the state of the game at a point in time: how a match
+actually plays out, measured metrics, observed problems, and a prioritized
+list of improvements.
 
 Use these reports to:
 - Compare behavior between versions (did possession balance out? are goals being scored?).

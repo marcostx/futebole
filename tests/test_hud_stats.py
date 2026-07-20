@@ -70,6 +70,14 @@ class PossessionTimeTest(unittest.TestCase):
         self.assertEqual(UI.possession_percentages(t1, t2), (75, 25))
 
 
+class ScoreboardTimeTest(unittest.TestCase):
+    def test_formats_full_match_duration(self):
+        self.assertEqual(UI.format_time(90), "01:30")
+
+    def test_formats_elapsed_fractional_seconds(self):
+        self.assertEqual(UI.format_time(66.9), "01:06")
+
+
 class ShotCountTest(unittest.TestCase):
     def _attack_ai(self, carrier_xy):
         team = Team("Team 1", (255, 0, 0))
