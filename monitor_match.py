@@ -6,13 +6,14 @@ completes instantly), instruments shots/passes/possession, records
 statistics and saves periodic screenshots for later inspection.
 """
 
+import argparse
+import math
 import os
+import random
+import statistics
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
-
-import math
-import statistics
 
 import pygame
 
@@ -56,8 +57,10 @@ def _instrument_players(stats):
     Player.pass_ball = _pass
 
 
-def run_match(output_dir="match_frames"):
+def run_match(output_dir="match_frames", seed=None):
     """Simulate one full match headlessly and collect statistics."""
+    if seed is not None:
+        random.seed(seed)
     virtual_ms = _install_virtual_clock()
     pygame.init()
 
@@ -188,7 +191,12 @@ def print_report(result):
 
 
 def main():
-    print_report(run_match())
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--seed", type=int, help="random seed for replayable matches")
+    parser.add_argument("--output-dir", default="match_frames",
+                        help="directory for captured screenshots")
+    args = parser.parse_args()
+    print_report(run_match(args.output_dir, seed=args.seed))
 
 
 if __name__ == "__main__":
