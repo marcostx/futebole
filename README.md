@@ -35,8 +35,8 @@ fairness, and 220-match parameter sweep.
 ├── requirements.txt
 ├── main.py
 ├── monitor_match.py
-├── experiments/       # Seeded parameter sweep and paper artifacts
-├── paper/             # LaTeX publication, generated tables, and figures
+├── experiments/       # Reproducible seeded parameter-sweep tools
+├── paper/             # LaTeX source and curated figures
 ├── reports/           # mdBook source and development reports
 ├── src/
 │   ├── game_engine.py
