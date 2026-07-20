@@ -7,6 +7,7 @@
 # Development Reports
 
 - [v0.1.0 Baseline](2026-07-09-v0.1.0-baseline.md)
+- [v0.2.0 Rebuild](2026-07-19-v0.2.0-rebuild.md)
 
 # Technical Paper
 

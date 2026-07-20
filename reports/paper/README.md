@@ -3,7 +3,7 @@
 **An Agent-Based 2D Soccer Simulation Engine with Role-Aware Tactics and
 Mixed Human/AI Control**
 
-Marcos Teixeira · Futebole v0.1.0 · Updated July 2026
+Marcos Teixeira · Futebole v0.2.0 · Updated July 2026
 
 [View the LaTeX source](https://github.com/marcostx/futebole/blob/main/paper/main.tex)
 
