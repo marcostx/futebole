@@ -126,7 +126,13 @@ class UI:
         pygame.draw.circle(self.screen, (0, 0, 0), 
                           (int(ball.x), int(ball.y)), 
                           ball.radius - 2, 1)
-    
+
+    @staticmethod
+    def format_time(seconds):
+        """Format a duration in whole seconds as MM:SS."""
+        total_seconds = int(seconds)
+        return f"{total_seconds // 60:02d}:{total_seconds % 60:02d}"
+
     def draw_scoreboard(self, team1_score, team2_score, game_time, match_duration):
         """Draw the scoreboard showing score and time."""
         # Create scoreboard background
@@ -138,10 +144,10 @@ class UI:
         self.screen.blit(score_text, (self.width // 2 - score_text.get_width() // 2, 5))
         
         # Draw game time
-        minutes = int(game_time) // 60
-        seconds = int(game_time) % 60
-        time_text = self.font.render(f"Time: {minutes:02d}:{seconds:02d} / {match_duration//60:02d}:00", 
-                                    True, (255, 255, 255))
+        time_text = self.font.render(
+            f"Time: {self.format_time(game_time)} / "
+            f"{self.format_time(match_duration)}",
+            True, (255, 255, 255))
         self.screen.blit(time_text, (10, 5))
         
         # Draw game state info (could be expanded)

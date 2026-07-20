@@ -21,6 +21,8 @@ from src.entities import Player
 
 FPS = 60
 DT_MS = int(1000 / FPS)
+PLAYER_OVERLAP_DISTANCE = 20.0  # two 10 px-radius player discs
+PLAYER_OVERLAP_TOLERANCE = 1e-6  # do not count floating-point contact
 SCREENSHOT_FRACTIONS = (0.05, 0.25, 0.5, 0.75, 0.95)
 
 
@@ -102,9 +104,11 @@ def run_match(output_dir="match_frames"):
         else:
             stats["possession_frames_t2"] += 1
 
-        # completed pass: possession reaches the intended receiver
-        if "_pending_pass_target" in stats and poss is stats["_pending_pass_target"]:
-            stats["pass_completed"] += 1
+        # Resolve a pass on the first player to gain possession after the kick.
+        pending_target = stats.get("_pending_pass_target")
+        if pending_target is not None and poss is not None:
+            if poss is pending_target:
+                stats["pass_completed"] += 1
             del stats["_pending_pass_target"]
 
         score = (engine.team1_score, engine.team2_score)
@@ -174,8 +178,12 @@ def print_report(result):
     print(f"Team1 avg intra-team spread: {statistics.mean(team_spread_samples):.1f} px")
     print(f"Closest any-two players (mean of per-frame min): "
           f"{statistics.mean(min_pair_dist_samples):.1f} px")
-    print(f"Frames with two players overlapping (<15px): "
-          f"{sum(1 for d in min_pair_dist_samples if d<15)/len(min_pair_dist_samples)*100:.1f}%")
+    overlap_pct = (
+        sum(1 for d in min_pair_dist_samples
+            if d < PLAYER_OVERLAP_DISTANCE - PLAYER_OVERLAP_TOLERANCE)
+        / len(min_pair_dist_samples) * 100)
+    print(f"Frames with two players overlapping (<{PLAYER_OVERLAP_DISTANCE:g}px): "
+          f"{overlap_pct:.1f}%")
     print("=" * 60)
 
 

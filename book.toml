@@ -2,7 +2,12 @@
 authors = ["Marcos Teixeira"]
 language = "en"
 src = "reports"
-title = "Le Futebole — Development Reports"
+title = "Le Futebole — Technical Documentation"
 
 [build]
 build-dir = "book"
+
+[output.html]
+mathjax-support = true
+site-url = "/futebole/"
+git-repository-url = "https://github.com/marcostx/futebole"
